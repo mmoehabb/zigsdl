@@ -2,7 +2,7 @@ const c = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 const std = @import("std");
-const Screen = @import("modules/screen.zig");
+const Screen = @import("modules/screen.zig").Screen;
 
 pub fn main() !void {
     if (c.SDL_Init(c.SDL_INIT_VIDEO) != 0) {

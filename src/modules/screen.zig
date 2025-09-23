@@ -3,7 +3,7 @@ const c = @cImport({
 });
 
 const Scene = @import("scene.zig").Scene;
-const LifeCycle = @import("../types/LifeCycle.zig").LifeCycle;
+const LifeCycle = @import("../types/common.zig").LifeCycle;
 
 pub const Screen = struct {
     title: []const u8,
@@ -44,7 +44,7 @@ pub const Screen = struct {
     pub fn close(self: *Screen) !void {
         if (self.lifecycle.preClose != undefined) self.lifecycle.preClose();
 
-        if (self.renderer and self.window) {
+        if (!self.renderer or !self.window) {
             return error.ScreenNotInitialized;
         }
 
@@ -61,8 +61,7 @@ pub const Screen = struct {
 
         _ = c.SDL_RenderClear(self.renderer);
         if (self.scene != undefined) {
-            const u = self.scene.?.*.update();
-            if (@TypeOf(u) != void) return u;
+            try self.scene.?.update(self.renderer);
         }
         c.SDL_RenderPresent(self.renderer);
 
