@@ -25,12 +25,12 @@ pub const Screen = struct {
             return error.SDLInitializationFailed;
         }
 
-        self.window = c.SDL_CreateWindow(self.title, c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, self.width, self.hight, c.SDL_WINDOW_OPENGL) orelse {
+        self.window = c.SDL_CreateWindow(self.title, self.width, self.hight, c.SDL_WINDOW_OPENGL) orelse {
             c.SDL_Log("Unable to create window: %s", c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        self.renderer = c.SDL_CreateRenderer(self.window, -1, 0) orelse {
+        self.renderer = c.SDL_CreateRenderer(self.window, null) orelse {
             c.SDL_Log("Unable to create renderer: %s", c.SDL_GetError());
             return error.SDLInitializationFailed;
         };

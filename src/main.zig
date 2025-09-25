@@ -1,23 +1,23 @@
 const c = @cImport({
-    @cInclude("SDL2/SDL.h");
+    @cInclude("SDL3/SDL.h");
 });
 const std = @import("std");
 const Screen = @import("modules/screen.zig").Screen;
 
 pub fn main() !void {
-    if (c.SDL_Init(c.SDL_INIT_VIDEO) != 0) {
+    if (!c.SDL_Init(c.SDL_INIT_VIDEO)) {
         c.SDL_Log("Unable to initialize SDL: %s", c.SDL_GetError());
         return error.SDLInitializationFailed;
     }
     defer c.SDL_Quit();
 
-    const window = c.SDL_CreateWindow("My Game Window", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 800, 600, c.SDL_WINDOW_OPENGL) orelse {
+    const window = c.SDL_CreateWindow("My Game Window", 800, 600, c.SDL_WINDOW_OPENGL) orelse {
         c.SDL_Log("Unable to create window: %s", c.SDL_GetError());
         return error.SDLInitializationFailed;
     };
     defer c.SDL_DestroyWindow(window);
 
-    const renderer = c.SDL_CreateRenderer(window, -1, 0) orelse {
+    const renderer = c.SDL_CreateRenderer(window, null) orelse {
         c.SDL_Log("Unable to create renderer: %s", c.SDL_GetError());
         return error.SDLInitializationFailed;
     };
@@ -25,8 +25,8 @@ pub fn main() !void {
 
     var quit = false;
 
-    var x: i32 = 20;
-    var y: i32 = 20;
+    var x: f32 = 20;
+    var y: f32 = 20;
 
     var keyA: bool = false;
     var keyD: bool = false;
@@ -35,13 +35,13 @@ pub fn main() !void {
 
     while (!quit) {
         var event: c.SDL_Event = undefined;
-        while (c.SDL_PollEvent(&event) != 0) {
+        while (c.SDL_PollEvent(&event)) {
             switch (event.type) {
-                c.SDL_QUIT => {
+                c.SDL_EVENT_QUIT => {
                     quit = true;
                 },
-                c.SDL_KEYDOWN => {
-                    switch (event.key.keysym.scancode) {
+                c.SDL_EVENT_KEY_DOWN => {
+                    switch (event.key.scancode) {
                         c.SDL_SCANCODE_ESCAPE => quit = true,
                         c.SDL_SCANCODE_A => keyA = true,
                         c.SDL_SCANCODE_D => keyD = true,
@@ -50,8 +50,8 @@ pub fn main() !void {
                         else => {},
                     }
                 },
-                c.SDL_KEYUP => {
-                    switch (event.key.keysym.scancode) {
+                c.SDL_EVENT_KEY_UP => {
+                    switch (event.key.scancode) {
                         c.SDL_SCANCODE_A => keyA = false,
                         c.SDL_SCANCODE_D => keyD = false,
                         c.SDL_SCANCODE_W => keyW = false,
@@ -71,7 +71,7 @@ pub fn main() !void {
         _ = c.SDL_RenderClear(renderer);
 
         _ = c.SDL_SetRenderDrawColor(renderer, 100, 200, 50, 255);
-        _ = c.SDL_RenderFillRect(renderer, &c.SDL_Rect{
+        _ = c.SDL_RenderFillRect(renderer, &c.SDL_FRect{
             .x = x,
             .y = y,
             .w = 20,
@@ -79,7 +79,7 @@ pub fn main() !void {
         });
 
         _ = c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        c.SDL_RenderPresent(renderer);
+        _ = c.SDL_RenderPresent(renderer);
 
         c.SDL_Delay(10);
     }
