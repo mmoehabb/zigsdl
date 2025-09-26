@@ -9,13 +9,12 @@ pub const Screen = struct {
     title: []const u8,
     width: usize,
     hight: usize,
-    closed: bool,
-
-    scene: ?*Scene,
     lifecycle: LifeCycle,
 
-    window: ?*c.SDL_Window,
-    renderer: ?*c.SDL_Renderer,
+    _closed: bool,
+    _scene: ?*Scene,
+    _window: ?*c.SDL_Window,
+    _renderer: ?*c.SDL_Renderer,
 
     pub fn open(self: *Screen) !void {
         if (self.lifecycle.preOpen != undefined) self.lifecycle.preOpen();
@@ -25,32 +24,32 @@ pub const Screen = struct {
             return error.SDLInitializationFailed;
         }
 
-        self.window = c.SDL_CreateWindow(self.title, self.width, self.hight, c.SDL_WINDOW_OPENGL) orelse {
+        self._window = c.SDL_CreateWindow(self.title, self.width, self.hight, c.SDL_WINDOW_OPENGL) orelse {
             c.SDL_Log("Unable to create window: %s", c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        self.renderer = c.SDL_CreateRenderer(self.window, null) orelse {
+        self._renderer = c.SDL_CreateRenderer(self._window, null) orelse {
             c.SDL_Log("Unable to create renderer: %s", c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        if (self.scene != undefined) self.scene.start();
+        if (self._scene != undefined) self._scene.start();
 
         if (self.lifecycle.postOpen != undefined) self.lifecycle.postOpen();
 
-        self.closed = false;
-        while (!self.closed) self.update();
+        self._closed = false;
+        while (!self._closed) self.update();
     }
 
     fn update(self: *Screen) !void {
         if (self.lifecycle.preUpdate != undefined) self.lifecycle.preUpdate();
 
-        _ = c.SDL_RenderClear(self.renderer);
-        if (self.scene != undefined) {
-            try self.scene.?.update(self.renderer);
+        _ = c.SDL_RenderClear(self._renderer);
+        if (self._scene != undefined) {
+            try self._scene.?.update(self._renderer);
         }
-        c.SDL_RenderPresent(self.renderer);
+        c.SDL_RenderPresent(self._renderer);
 
         if (self.lifecycle.postUpdate != undefined) self.lifecycle.postUpdate();
         c.SDL_Delay(10);
@@ -59,22 +58,22 @@ pub const Screen = struct {
     pub fn close(self: *Screen) !void {
         if (self.lifecycle.preClose != undefined) self.lifecycle.preClose();
 
-        if (self.renderer == undefined or self.window == undefined) {
+        if (self._renderer == undefined or self._window == undefined) {
             return error.ScreenNotInitialized;
         }
 
-        if (self.scene != undefined) self.scene.deinit();
+        if (self._scene != undefined) self._scene.deinit();
 
-        self.closed = true;
+        self._closed = true;
         if (self.lifecycle.postClose != undefined) self.lifecycle.postClose();
 
-        c.SDL_DestroyRenderer(self.renderer);
-        c.SDL_DestroyWindow(self.window);
+        c.SDL_DestroyRenderer(self._renderer);
+        c.SDL_DestroyWindow(self._window);
         c.SDL_Quit();
     }
 
     pub fn setScene(self: *Screen, scene: *Scene) void {
-        self.scene = scene.init();
-        if (self.renderer != undefined) self.scene.start();
+        self._scene = scene.init();
+        if (self._renderer != undefined) self._scene.start();
     }
 };
