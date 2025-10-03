@@ -11,6 +11,7 @@ pub const Screen = struct {
     title: []const u8,
     width: c_int,
     height: c_int,
+    rate: u32,
     lifecycle: *const LifeCycle,
     eventManager: EventManager,
 
@@ -19,11 +20,12 @@ pub const Screen = struct {
     var window: ?*c.SDL_Window = null;
     var renderer: ?*c.SDL_Renderer = null;
 
-    pub fn new(title: []const u8, width: c_int, height: c_int, lifecycle: *const LifeCycle) Screen {
+    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32, lifecycle: *const LifeCycle) Screen {
         return Screen{
             .title = title,
             .width = width,
             .height = height,
+            .rate = rate,
             .lifecycle = lifecycle,
             .eventManager = EventManager{},
         };
@@ -67,7 +69,7 @@ pub const Screen = struct {
         _ = c.SDL_RenderPresent(renderer);
 
         if (self.lifecycle.postUpdate) |func| func();
-        c.SDL_Delay(10);
+        c.SDL_Delay(self.rate);
     }
 
     pub fn close(self: *Screen) !void {
@@ -87,8 +89,8 @@ pub const Screen = struct {
         c.SDL_Quit();
     }
 
-    pub fn setScene(_: *Screen, newscene: *Scene) void {
+    pub fn setScene(self: *Screen, newscene: *Scene) void {
         scene = newscene;
-        _ = renderer orelse try scene.?.start();
+        scene.?.setScreen(self);
     }
 };

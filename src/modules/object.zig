@@ -3,6 +3,7 @@ const c = @cImport({
 });
 const std = @import("std");
 
+const Scene = @import("./scene.zig").Scene;
 const Drawable = @import("./drawable.zig").Drawable;
 const Script = @import("./script.zig").Script;
 const Position = @import("../types/common.zig").Position;
@@ -12,31 +13,35 @@ pub const Object = struct {
     position: Position,
     rotation: Rotation,
     drawable: *const Drawable,
+    scene: ?*Scene,
 
-    const scripts = std.ArrayList(Script).init(std.heap.page_allocator);
+    var scripts = std.ArrayList(Script).init(std.heap.page_allocator);
 
-    pub fn deinit(_: *Object) !void {
+    pub fn deinit(self: *Object) !void {
         for (scripts.items) |script| {
-            if (script.end) |func| func();
+            if (script.end) |func| func(self);
         }
         scripts.deinit();
     }
 
-    pub fn start(_: *Object) !void {
+    pub fn start(self: *Object) !void {
         for (scripts.items) |script| {
-            if (script.start) |func| func();
+            if (script.start) |func| func(self);
         }
     }
 
     pub fn update(self: *Object, renderer: *c.SDL_Renderer) !void {
         for (scripts.items) |script| {
-            if (script.update) |func| func();
+            if (script.update) |func| func(self);
         }
         try self.drawable.draw(renderer, self.position, self.rotation);
     }
 
-    pub fn addScript(self: *Object, script: Script) !void {
-        script.setObject(self);
-        try scripts.addOne(script);
+    pub fn addScript(_: *Object, script: Script) !void {
+        try scripts.append(script);
+    }
+
+    pub fn setScene(self: *Object, scene: *Scene) void {
+        self.scene = scene;
     }
 };

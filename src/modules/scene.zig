@@ -2,15 +2,16 @@ const c = @cImport({
     @cInclude("SDL3/SDL.h");
 });
 const std = @import("std");
-const ArrayList = @import("std").ArrayList;
 
+const Screen = @import("./screen.zig").Screen;
 const Object = @import("./object.zig").Object;
 
 pub const Scene = struct {
-    var objects = ArrayList(*Object).init(std.heap.page_allocator);
+    screen: ?*Screen,
+    var objects = std.ArrayList(*Object).init(std.heap.page_allocator);
 
     pub fn new() Scene {
-        return Scene{};
+        return Scene{ .screen = undefined };
     }
 
     pub fn deinit(_: *Scene) void {
@@ -26,7 +27,12 @@ pub const Scene = struct {
         for (objects.items) |obj| try obj.update(renderer);
     }
 
-    pub fn addObject(_: *Scene, obj: *Object) !void {
+    pub fn addObject(self: *Scene, obj: *Object) !void {
+        obj.scene = self;
         try objects.append(obj);
+    }
+
+    pub fn setScreen(self: *Scene, screen: *Screen) void {
+        self.screen = screen;
     }
 };

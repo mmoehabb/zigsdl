@@ -5,8 +5,27 @@ const Scene = @import("./modules/scene.zig").Scene;
 const Object = @import("./modules/object.zig").Object;
 const Rect = @import("./drawables/rect.zig");
 
+const Movement = @import("./scripts/movement.zig").Movement;
+
 pub fn main() !void {
-    var screen = Screen.new("Simple Game", 320, 320, &LifeCycle{
+    // create a drawable object
+    const rect = Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+    var obj = Object{
+        .position = .{ .x = 20, .y = 20, .z = 1 },
+        .rotation = .{ .x = 0, .y = 0, .z = 0 },
+        .drawable = &rect,
+        .scene = undefined,
+    };
+
+    // add movement script to the object
+    try obj.addScript(Movement.new(5));
+
+    // create a scene and add the drawable obj into it
+    var scene = Scene.new();
+    try scene.addObject(&obj);
+
+    // create a screen, attach the scene to it, and open it
+    var screen = Screen.new("Simple Game", 320, 320, 10, &LifeCycle{
         .preOpen = null,
         .postOpen = null,
         .preUpdate = null,
@@ -14,17 +33,6 @@ pub fn main() !void {
         .preClose = null,
         .postClose = null,
     });
-
-    const rect = Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
-    var obj = Object{
-        .position = .{ .x = 20, .y = 20, .z = 1 },
-        .rotation = .{ .x = 0, .y = 0, .z = 0 },
-        .drawable = &rect,
-    };
-
-    var scene = Scene.new();
-    try scene.addObject(&obj);
-
     screen.setScene(&scene);
     try screen.open();
 }

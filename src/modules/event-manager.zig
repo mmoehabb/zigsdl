@@ -5,7 +5,7 @@ const HashMap = @import("std").AutoHashMap;
 const ArrayList = @import("std").ArrayList;
 const std = @import("std");
 
-const Callback = *fn () void;
+const Callback = *const fn () void;
 pub const Key = enum { A, S, D, W, ESC };
 
 pub const EventManager = struct {
@@ -59,25 +59,21 @@ pub const EventManager = struct {
         }
     }
 
-    pub fn onKeyDown(_: *EventManager, key: Key, callback: Callback) void {
-        if (keyDownFnHash.get(key) == undefined) {
-            const arr = ArrayList(Callback).init(std.heap.page_allocator);
-            arr.append(callback);
-            keyDownFnHash.put(key, arr);
-            return;
-        }
-        const arr = keyDownFnHash.get(key);
-        arr.append(callback);
+    pub fn onKeyDown(_: *EventManager, key: Key, callback: Callback) !void {
+        var arr = keyDownFnHash.getPtr(key) orelse blk: {
+            const tmp = ArrayList(Callback).init(std.heap.page_allocator);
+            try keyDownFnHash.put(key, tmp);
+            break :blk keyDownFnHash.getPtr(key);
+        };
+        try arr.?.append(callback);
     }
 
     pub fn onKeyUp(_: *EventManager, key: Key, callback: Callback) void {
-        if (keyUpFnHash.get(key) == undefined) {
-            const arr = ArrayList(Callback).init(std.heap.page_allocator);
-            arr.append(callback);
-            keyUpFnHash.put(key, arr);
-            return;
-        }
-        const arr = keyUpFnHash.get(key);
-        arr.append(callback);
+        var arr = keyUpFnHash.get(key) orelse blk: {
+            const tmp = ArrayList(Callback).init(std.heap.page_allocator);
+            try keyUpFnHash.put(key, tmp);
+            break :blk tmp;
+        };
+        try arr.append(callback);
     }
 };
