@@ -1,28 +1,31 @@
 const debug = @import("std").debug;
-const Object = @import("../modules/object.zig").Object;
-const Script = @import("../modules/script.zig").Script;
+const modules = @import("../modules/mod.zig");
 
 pub const Movement = struct {
     var delta: f32 = 0;
-    var obj: ?*Object = undefined;
+    var obj: ?*modules.Object = undefined;
 
-    pub fn new(speed: f32) Script {
+    pub fn new(speed: f32) modules.Script {
         delta = speed;
-        return Script{
-            .start = start,
-            .update = undefined,
-            .end = undefined,
+        return modules.Script{
+            .start = &start,
+            .update = &update,
+            .end = &end,
         };
     }
 
-    fn start(o: *Object) void {
+    fn start(o: *modules.Object) void {
         obj = o;
         var em = obj.?.scene.?.screen.?.eventManager;
-        em.onKeyDown(.W, moveUp) catch unreachable;
-        em.onKeyDown(.S, moveDown) catch unreachable;
-        em.onKeyDown(.D, moveRight) catch unreachable;
-        em.onKeyDown(.A, moveLeft) catch unreachable;
+        em.onKeyDown(.W, &moveUp) catch unreachable;
+        em.onKeyDown(.S, &moveDown) catch unreachable;
+        em.onKeyDown(.D, &moveRight) catch unreachable;
+        em.onKeyDown(.A, &moveLeft) catch unreachable;
     }
+
+    fn update(_: *modules.Object) void {}
+
+    fn end(_: *modules.Object) void {}
 
     fn moveUp() void {
         obj.?.position.y -= delta;

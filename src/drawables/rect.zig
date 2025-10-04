@@ -1,14 +1,9 @@
-const c = @cImport({
-    @cInclude("SDL3/SDL.h");
-});
-const Drawable = @import("../modules/drawable.zig").Drawable;
-const Position = @import("../types/common.zig").Position;
-const Rotation = @import("../types/common.zig").Rotation;
-const Dimensions = @import("../types/common.zig").Dimensions;
-const Color = @import("../types/common.zig").Color;
+const sdl = @import("../sdl.zig");
+const modules = @import("../modules/mod.zig");
+const types = @import("../types/mod.zig");
 
-fn drawFn(renderer: *c.SDL_Renderer, p: Position, _: Rotation, dim: Dimensions) void {
-    _ = c.SDL_RenderFillRect(renderer, &c.SDL_FRect{
+fn drawFn(renderer: *sdl.c.SDL_Renderer, p: types.common.Position, _: types.common.Rotation, dim: types.common.Dimensions) void {
+    _ = sdl.c.SDL_RenderFillRect(renderer, &sdl.c.SDL_FRect{
         .x = p.x,
         .y = p.y,
         .w = dim.w,
@@ -16,10 +11,10 @@ fn drawFn(renderer: *c.SDL_Renderer, p: Position, _: Rotation, dim: Dimensions) 
     });
 }
 
-pub fn new(dim: Dimensions, color: Color) Drawable {
-    return Drawable{
+pub fn new(dim: types.common.Dimensions, color: types.common.Color) modules.Drawable {
+    return modules.Drawable{
         .dim = dim,
         .color = color,
-        .drawFn = drawFn,
+        .drawFn = &drawFn,
     };
 }

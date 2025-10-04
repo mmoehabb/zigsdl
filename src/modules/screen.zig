@@ -1,26 +1,24 @@
-const c = @cImport({
-    @cInclude("SDL3/SDL.h");
-});
 const std = @import("std");
+const sdl = @import("../sdl.zig");
 
 const Scene = @import("scene.zig").Scene;
 const EventManager = @import("event-manager.zig").EventManager;
-const LifeCycle = @import("../types/common.zig").LifeCycle;
+const types = @import("../types/mod.zig");
 
 pub const Screen = struct {
     title: []const u8,
     width: c_int,
     height: c_int,
     rate: u32,
-    lifecycle: *const LifeCycle,
+    lifecycle: *const types.common.LifeCycle,
     eventManager: EventManager,
 
     var closed: bool = false;
     var scene: ?*Scene = null;
-    var window: ?*c.SDL_Window = null;
-    var renderer: ?*c.SDL_Renderer = null;
+    var window: ?*sdl.c.SDL_Window = null;
+    var renderer: ?*sdl.c.SDL_Renderer = null;
 
-    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32, lifecycle: *const LifeCycle) Screen {
+    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32, lifecycle: *const types.common.LifeCycle) Screen {
         return Screen{
             .title = title,
             .width = width,
@@ -34,18 +32,18 @@ pub const Screen = struct {
     pub fn open(self: *Screen) !void {
         if (self.lifecycle.preOpen) |func| func();
 
-        if (!c.SDL_Init(c.SDL_INIT_VIDEO)) {
-            c.SDL_Log("Unable to initialize SDL: %s", c.SDL_GetError());
+        if (!sdl.c.SDL_Init(sdl.c.SDL_INIT_VIDEO)) {
+            sdl.c.SDL_Log("Unable to initialize SDL: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         }
 
-        window = c.SDL_CreateWindow(self.title.ptr, self.width, self.height, c.SDL_WINDOW_OPENGL) orelse {
-            c.SDL_Log("Unable to create window: %s", c.SDL_GetError());
+        window = sdl.c.SDL_CreateWindow(self.title.ptr, self.width, self.height, sdl.c.SDL_WINDOW_OPENGL) orelse {
+            sdl.c.SDL_Log("Unable to create window: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        renderer = c.SDL_CreateRenderer(window, null) orelse {
-            c.SDL_Log("Unable to create renderer: %s", c.SDL_GetError());
+        renderer = sdl.c.SDL_CreateRenderer(window, null) orelse {
+            sdl.c.SDL_Log("Unable to create renderer: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
@@ -61,15 +59,15 @@ pub const Screen = struct {
         if (self.lifecycle.preUpdate) |func| func();
 
         const event = self.eventManager.invokeEventLoop();
-        if (event.type == c.SDL_EVENT_QUIT) return try self.close();
+        if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
-        _ = c.SDL_RenderClear(renderer);
+        _ = sdl.c.SDL_RenderClear(renderer);
         if (scene) |s| try s.update(renderer.?);
-        _ = c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        _ = c.SDL_RenderPresent(renderer);
+        _ = sdl.c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        _ = sdl.c.SDL_RenderPresent(renderer);
 
         if (self.lifecycle.postUpdate) |func| func();
-        c.SDL_Delay(self.rate);
+        sdl.c.SDL_Delay(self.rate);
     }
 
     pub fn close(self: *Screen) !void {
@@ -84,9 +82,9 @@ pub const Screen = struct {
         closed = true;
         if (self.lifecycle.postClose) |func| func();
 
-        c.SDL_DestroyRenderer(renderer);
-        c.SDL_DestroyWindow(window);
-        c.SDL_Quit();
+        sdl.c.SDL_DestroyRenderer(renderer);
+        sdl.c.SDL_DestroyWindow(window);
+        sdl.c.SDL_Quit();
     }
 
     pub fn setScene(self: *Screen, newscene: *Scene) void {
