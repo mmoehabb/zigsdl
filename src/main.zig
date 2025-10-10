@@ -15,7 +15,7 @@ pub fn main() !void {
     };
 
     // add movement script to the object
-    try obj.addScript(Movement.new(5));
+    try obj.addScript(Movement.new(5, true));
 
     // create a scene and add the drawable obj into it
     var scene = modules.Scene.new();
