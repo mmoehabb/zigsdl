@@ -1,10 +1,17 @@
+![cova_icon_v2 1](./splash.png)
+
+[![Static Badge](https://img.shields.io/badge/v0.15.1(stable)-orange?logo=Zig&logoColor=Orange&label=Zig&labelColor=Orange)](https://ziglang.org/download/)
+[![Static Badge](https://img.shields.io/badge/v0.0.1-blue?logo=GitHub&label=Release)](https://github.com/mmoehabb/zigsdl/releases/tag/v0.0.1)
+[![Static Badge](https://img.shields.io/badge/MIT-silver?label=License)](https://github.com/mmoehabb/zigsdl/blob/main/LICENSE)
+
 ## About
+
 A relatively easy-to-pick, simple, and straightforward package that developers can use in order to write graphic applications in [Zig](https://ziglang.org/). Just as the name indicates it's build on [SDL3](https://www.libsdl.org/).
 
 - [Install SDL3](#install-sdl3)
 - [Install ZigSDL](#install-zigsdl)
 - [Run an Example](#run-an-example)
-- [Extend the Functionality](extend-the-functionality)
+- [Extend the Functionality](#extend-the-functionality)
 - [TODOs](#todos)
 
 ## Install ZigSDL
@@ -115,7 +122,7 @@ pub const MyScript = struct {
     }
 
     fn update(_: *modules.Object) void {
-      // do something for ever
+      // do something forever
     }
 
     fn end(_: *modules.Object) void {
