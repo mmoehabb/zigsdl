@@ -12,12 +12,30 @@ A relatively easy-to-pick, simple, and straightforward package that developers c
 You can use ZigSDL in your zig project by fetching it as follows:
 
 ```bash
-zig fetch https://github.com/mmoehabb/zigsdl
+zig fetch --save git+https://github.com/mmoehabb/zigsdl.git
 ```
 
-> Remember to add it in your `build.zig` file, and link `SDL3` and the C library.
+And then add it as an import in your exe root module:
 
-> Ensure to install SDL3 first.
+```zig
+// This creates another `std.Build.Step.Compile`, but this one builds an executable
+// rather than a static library.
+const exe = b.addExecutable(.{
+    .name = "your-project",
+    .root_module = exe_mod,
+});
+
+const zigsdl_dep = b.dependency("zigsdl", .{
+    .target = target,
+    .optimize = optimize,
+});
+
+const zigsdl_mod = zigsdl_dep.module("zigsdl");
+
+exe.root_module.addImport("zigsdl", zigsdl_mod);
+```
+
+> Make sure to install SDL3 first.
 
 ## Run an Example
 
