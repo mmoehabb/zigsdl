@@ -1,13 +1,9 @@
-const modules = @import("./modules/mod.zig");
-const types = @import("./types/mod.zig");
-
-const Rect = @import("./drawables/rect.zig");
-const Movement = @import("./scripts/movement.zig").Movement;
+const zigsdl = @import("zigsdl");
 
 pub fn main() !void {
     // create a drawable object
-    const rect = Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
-    var obj = modules.Object{
+    const rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+    var obj = zigsdl.modules.Object{
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect,
@@ -15,14 +11,14 @@ pub fn main() !void {
     };
 
     // add movement script to the object
-    try obj.addScript(Movement.new(5, true));
+    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
 
     // create a scene and add the drawable obj into it
-    var scene = modules.Scene.new();
+    var scene = zigsdl.modules.Scene.new();
     try scene.addObject(&obj);
 
     // create a screen, attach the scene to it, and open it
-    var screen = modules.Screen.new("Simple Game", 320, 320, 10, &types.common.LifeCycle{
+    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60, &zigsdl.types.common.LifeCycle{
         .preOpen = null,
         .postOpen = null,
         .preUpdate = null,
