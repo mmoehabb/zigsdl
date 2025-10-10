@@ -1,12 +1,29 @@
 ## About
 A relatively easy-to-pick, simple, and straightforward package that developers can use in order to write graphic applications in [Zig](https://ziglang.org/). Just as the name indicates it's build on [SDL3](https://www.libsdl.org/).
 
-- [Run an Example](#run-an-example)
 - [Install SDL3](#install-sdl3)
+- [Install ZigSDL](#install-zigsdl)
+- [Run an Example](#run-an-example)
+- [Extend the Functionality](extend-the-functionality)
+- [TODOs](#todos)
+
+## Install ZigSDL
+
+You can use ZigSDL in your zig project by fetching it as follows:
+
+```bash
+zig fetch https://github.com/mmoehabb/zigsdl
+```
+
+> Remember to add it in your `build.zig` file, and link `SDL3` and the C library.
+
+> Ensure to install SDL3 first.
 
 ## Run an Example
 
 First ensure to install SDL3 on your machine, and Zig of course. Choose any example file in the examples directory, and then run it with the following command:
+
+> Note: compatible only with zig versions ^0.15.0
 
   ```bash
   zig build <example>
@@ -17,6 +34,84 @@ For instance:
   ```bash
   zig build moving_box_example
   ```
+
+## Extend the Functionality
+
+I pet if you gave the code a look, you'd already know how to extend it and make a functional game with ZigSDL. Here's the moving_box_example zig file:
+
+```zig
+const zigsdl = @import("zigsdl");
+
+pub fn main() !void {
+    // create a drawable object
+    const rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+    var obj = zigsdl.modules.Object{
+        .position = .{ .x = 20, .y = 20, .z = 1 },
+        .rotation = .{ .x = 0, .y = 0, .z = 0 },
+        .drawable = &rect,
+        .scene = undefined,
+    };
+
+    // add movement script to the object
+    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
+
+    // create a scene and add the drawable obj into it
+    var scene = zigsdl.modules.Scene.new();
+    try scene.addObject(&obj);
+
+    // create a screen, attach the scene to it, and open it
+    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60, &zigsdl.types.common.LifeCycle{
+        .preOpen = null,
+        .postOpen = null,
+        .preUpdate = null,
+        .postUpdate = null,
+        .preClose = null,
+        .postClose = null,
+    });
+    screen.setScene(&scene);
+    try screen.open();
+}
+```
+
+You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them, and you may use ZigSDL pre-defined scripts or write your own ones as follows:
+
+```zig
+const zigsdl = @import("zigsdl");
+
+pub const MyScript = struct {
+    var obj: ?*zigsdl.modules.Object = undefined;
+
+    var myLocalVar: bool = false;
+
+    pub fn new(state: bool) zigsdl.modules.Script {
+        myLocalVar = state;
+        return zigsdl.modules.Script{
+            .start = &start,
+            .update = &update,
+            .end = &end,
+        };
+    }
+
+    fn start(o: *modules.Object) void {
+      // do something for once at the start
+    }
+
+    fn update(_: *modules.Object) void {
+      // do something for ever
+    }
+
+    fn end(_: *modules.Object) void {
+      // do something for once at the end
+    }
+};
+```
+
+Moreover, you may access SDL indirectly from ZigSDL, and use SDL facilities in your scripts:
+
+```zig
+const sdl = @import("zigsdl").sdl;
+sdl.SDL_RenderFillRect(...);
+```
 
 ## Install SDL3
 
@@ -87,3 +182,14 @@ This guide provides brief instructions for installing SDL3 on various operating 
 - Ensure your build system (e.g., Zig) can find SDL3 by linking with `-lSDL3`.
 
 For detailed instructions or troubleshooting, visit the [SDL3 documentation](https://wiki.libsdl.org/SDL3/Installation).
+
+## TODOs
+
+### Version 0.1.0
+
+#### Patch 0.0.2
+[ ] Implement parent-child relationship in objects.
+[ ] Differentiate between absolute and relative positions, rotations, and scales.
+[ ] Add Sprite drawable to the pre-defined drawables.
+[ ] Write unit tests for all modules.
+
