@@ -225,6 +225,11 @@ pub const Key = enum {
     AcStop,
     AcRefresh,
     AcBookmarks,
+    LeftMouse,
+    RightMouse,
+    MiddleMouse,
+    X1Mouse,
+    X2Mouse,
 };
 
 pub const EventManager = struct {
@@ -246,6 +251,14 @@ pub const EventManager = struct {
                 },
                 sdl.c.SDL_EVENT_KEY_UP => {
                     const key = scancodeToKey(event.key.scancode);
+                    self.keyUp(key);
+                },
+                sdl.c.SDL_EVENT_MOUSE_BUTTON_DOWN => {
+                    const key = mouseCodeToEnum(event.key.scancode);
+                    self.keyDown(key);
+                },
+                sdl.c.SDL_EVENT_MOUSE_BUTTON_UP => {
+                    const key = mouseCodeToEnum(event.key.scancode);
                     self.keyUp(key);
                 },
                 else => return event,
@@ -508,6 +521,17 @@ pub const EventManager = struct {
             sdl.c.SDL_SCANCODE_AC_REFRESH => .AcRefresh,
             sdl.c.SDL_SCANCODE_AC_BOOKMARKS => .AcBookmarks,
             else => .Unknown,
+        };
+    }
+
+    fn mouseCodeToEnum(scancode: sdl.c.SDL_Scancode) Key {
+        return switch (scancode) {
+            sdl.c.SDL_BUTTON_LEFT => .LeftMouse,
+            sdl.c.SDL_BUTTON_MIDDLE => .MiddleMouse,
+            sdl.c.SDL_BUTTON_RIGHT => .RightMouse,
+            sdl.c.SDL_BUTTON_X1 => .X1Mouse,
+            sdl.c.SDL_BUTTON_X2 => .X2Mouse,
+            else => .LeftMouse, // NOTE: any unknown mouse click event considered as a left click
         };
     }
 };
