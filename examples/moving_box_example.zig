@@ -3,17 +3,26 @@ const zigsdl = @import("zigsdl");
 pub fn main() !void {
     // create a drawable object
     const rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+
     var obj = zigsdl.modules.Object{
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect,
-        .scene = undefined,
     };
 
     // add movement script to the object
     try obj.addScript(zigsdl.scripts.Movement.new(5, true));
 
-    // create a scene and add the drawable obj into it
+    // add child objects to obj
+    const rect2 = zigsdl.drawables.Rect.new(.{ .w = 10, .h = 10, .d = 1 }, .{ .r = 255 });
+    var obj2 = zigsdl.modules.Object{
+        .position = .{ .x = 5, .y = 5, .z = 0 },
+        .rotation = .{ .x = 0, .y = 0, .z = 0 },
+        .drawable = &rect2,
+    };
+    try obj.addChild(&obj2);
+
+    // create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.new();
     try scene.addObject(&obj);
 

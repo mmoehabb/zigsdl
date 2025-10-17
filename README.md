@@ -74,7 +74,6 @@ pub fn main() !void {
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect,
-        .scene = undefined,
     };
 
     // add movement script to the object
@@ -213,10 +212,8 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 
 ### Version 0.1.0
 
-#### Patch 0.0.2
-
-- [ ] Implement parent-child relationship in objects.
-- [ ] Differentiate between absolute and relative positions, rotations, and scales.
+- [x] Write a comprehensive set of keys in the event-manager component.
+- [x] Implement parent-child relationship in objects.
 - [ ] Add Sprite drawable to the pre-defined drawables.
 - [ ] Write unit tests for all modules.
 
