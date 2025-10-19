@@ -23,13 +23,27 @@ pub fn build(b: *std.Build) void {
         }),
     });
     exm1.root_module.addImport("zigsdl", zigsdl);
-
     b.installArtifact(exm1);
 
+    const exm2 = b.addExecutable(.{
+        .name = "sprite_example",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/sprite_example.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm2.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm2);
+
     // Create build steps to run the examples
-    const run_cmd = b.addRunArtifact(exm1);
-    const run_step = b.step("moving_box_example", "Run moving_box_example");
-    run_step.dependOn(&run_cmd.step);
+    const exm1_run_cmd = b.addRunArtifact(exm1);
+    const exm1_run_step = b.step("moving_box_example", "Run moving_box_example");
+    exm1_run_step.dependOn(&exm1_run_cmd.step);
+
+    const exm2_run_cmd = b.addRunArtifact(exm2);
+    const exm2_run_step = b.step("sprite_example", "Run sprite_example");
+    exm2_run_step.dependOn(&exm2_run_cmd.step);
 
     // Add test step
     const exe_unit_tests = b.addTest(.{

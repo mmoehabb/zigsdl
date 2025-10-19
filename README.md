@@ -214,6 +214,8 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 
 - [x] Write a comprehensive set of keys in the event-manager component.
 - [x] Implement parent-child relationship in objects.
-- [ ] Add Sprite drawable to the pre-defined drawables.
+- [x] Add Sprite drawable to the pre-defined drawables.
+- [ ] Add Text drawable to the pre-defined drawables.
+- [ ] Write remove methods for event-manager, and do cleanup, accordingly on scripts _end_ method.
 - [ ] Write unit tests for all modules.
 
