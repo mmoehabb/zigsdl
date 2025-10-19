@@ -31,6 +31,7 @@ pub const Object = struct {
     }
 
     pub fn deinit(self: *Object) !void {
+        if (self.drawable) |d| d.destroy();
         for (self.scripts.items) |script| script.end(self);
         self.scripts.deinit(std.heap.page_allocator);
         for (self.children.items) |child| try child.deinit();
