@@ -37,6 +37,10 @@ pub const Screen = struct {
             return error.SDLInitializationFailed;
         }
 
+        if (!sdl.c.TTF_Init()) {
+            return error.TTFInitializationFailed;
+        }
+
         window = sdl.c.SDL_CreateWindow(self.title.ptr, self.width, self.height, sdl.c.SDL_WINDOW_OPENGL) orelse {
             sdl.c.SDL_Log("Unable to create window: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
@@ -82,6 +86,7 @@ pub const Screen = struct {
         closed = true;
         if (self.lifecycle.postClose) |func| func();
 
+        sdl.c.TTF_Quit();
         sdl.c.SDL_DestroyRenderer(renderer);
         sdl.c.SDL_DestroyWindow(window);
         sdl.c.SDL_Quit();

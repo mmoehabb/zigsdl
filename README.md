@@ -102,32 +102,35 @@ You may add as many objects as you want in the scene, you can easily add differe
 ```zig
 const zigsdl = @import("zigsdl");
 
-pub const MyScript = struct {
-    var obj: ?*zigsdl.modules.Object = undefined;
+pub fn main() !void {
+    // create a drawable object
+    var rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
 
-    var myLocalVar: bool = false;
+    var obj = zigsdl.modules.Object{
+        .position = .{ .x = 20, .y = 20, .z = 1 },
+        .rotation = .{ .x = 0, .y = 0, .z = 0 },
+        .drawable = &rect.toDrawable(),
+    };
 
-    pub fn new(state: bool) zigsdl.modules.Script {
-        myLocalVar = state;
-        return zigsdl.modules.Script{
-            .start = &start,
-            .update = &update,
-            .end = &end,
-        };
-    }
+    // add movement script to the object
+    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
 
-    fn start(o: *modules.Object) void {
-      // do something for once at the start
-    }
+    // create a scene and add the obj into it
+    var scene = zigsdl.modules.Scene.new();
+    try scene.addObject(&obj);
 
-    fn update(_: *modules.Object) void {
-      // do something forever
-    }
-
-    fn end(_: *modules.Object) void {
-      // do something for once at the end
-    }
-};
+    // create a screen, attach the scene to it, and open it
+    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60, &zigsdl.types.common.LifeCycle{
+        .preOpen = null,
+        .postOpen = null,
+        .preUpdate = null,
+        .postUpdate = null,
+        .preClose = null,
+        .postClose = null,
+    });
+    screen.setScene(&scene);
+    try screen.open();
+}
 ```
 
 Moreover, you may access SDL indirectly from ZigSDL, and use SDL facilities in your scripts:
@@ -215,7 +218,11 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Write a comprehensive set of keys in the event-manager component.
 - [x] Implement parent-child relationship in objects.
 - [x] Add Sprite drawable to the pre-defined drawables.
-- [ ] Add Text drawable to the pre-defined drawables.
+- [x] Add Text drawable to the pre-defined drawables.
+- [ ] Make the object functionality extendable by integrating the LifeCycle within.
+- [ ] Use rotations in draw logic of the current pre-defined drawables.
+- [ ] Differentiate between absolute and relative positions and rotations.
+- [ ] Add active state for object, and update only those who have active=true in the scene update method.
 - [ ] Write remove methods for event-manager, and do cleanup, accordingly on scripts _end_ method.
 - [ ] Write unit tests for all modules.
 

@@ -48,7 +48,11 @@ pub const Sprite = struct {
         };
     }
 
-    pub fn toDrawable(self: *Sprite, dim: types.common.Dimensions, color: types.common.Color) modules.Drawable {
+    pub fn toDrawable(
+        self: *Sprite,
+        dim: types.common.Dimensions,
+        color: types.common.Color,
+    ) modules.Drawable {
         return modules.Drawable{
             .dim = dim,
             .color = color,
@@ -61,10 +65,16 @@ pub const Sprite = struct {
         self._texture = null;
     }
 
-    fn draw(ds: *const modules.DrawStrategy, renderer: *sdl.c.SDL_Renderer, pos: types.common.Position, _: types.common.Rotation, dim: types.common.Dimensions) !void {
+    fn draw(
+        ds: *const modules.DrawStrategy,
+        renderer: *sdl.c.SDL_Renderer,
+        pos: types.common.Position,
+        _: types.common.Rotation,
+        dim: types.common.Dimensions,
+    ) !void {
         const self = @as(*Sprite, @constCast(@fieldParentPtr("_draw_strategy", ds)));
 
-        const texture = if (self._texture) |t| t else blk: {
+        const texture = self._texture orelse blk: {
             const surface = sdl.c.SDL_LoadBMP(self.bmp_path.ptr);
             defer sdl.c.SDL_DestroySurface(surface);
             const texture = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
@@ -77,13 +87,18 @@ pub const Sprite = struct {
             .w = self.frame_width,
             .h = self.frame_height,
         };
-        const dist = sdl.c.SDL_FRect{
+        const dest = sdl.c.SDL_FRect{
             .x = pos.x,
             .y = pos.y,
             .w = dim.w,
             .h = dim.h,
         };
-        if (!sdl.c.SDL_RenderTexture(renderer, texture, &src, &dist)) return error.RenderFailed;
+        if (!sdl.c.SDL_RenderTexture(
+            renderer,
+            texture,
+            &src,
+            &dest,
+        )) return error.RenderFailed;
 
         if (sdl.c.SDL_GetTicks() - self._last_ticks >= self.ms) {
             self.index = if (self.index >= self.frames_count) 0 else self.index + 1;

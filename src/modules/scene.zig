@@ -6,28 +6,28 @@ const Object = @import("./object.zig").Object;
 
 pub const Scene = struct {
     screen: ?*Screen,
-    var objects = std.ArrayList(*Object).empty;
+    _objects: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 
     pub fn new() Scene {
         return Scene{ .screen = undefined };
     }
 
-    pub fn deinit(_: *Scene) void {
-        for (objects.items) |obj| try obj.deinit();
-        objects.deinit(std.heap.page_allocator);
+    pub fn deinit(self: *Scene) void {
+        for (self._objects.items) |obj| try obj.deinit();
+        self._objects.deinit(std.heap.page_allocator);
     }
 
-    pub fn start(_: *Scene) !void {
-        for (objects.items) |obj| try obj.start();
+    pub fn start(self: *Scene) !void {
+        for (self._objects.items) |obj| try obj.start();
     }
 
-    pub fn update(_: *Scene, renderer: *sdl.c.SDL_Renderer) !void {
-        for (objects.items) |obj| try obj.update(renderer);
+    pub fn update(self: *Scene, renderer: *sdl.c.SDL_Renderer) !void {
+        for (self._objects.items) |obj| try obj.update(renderer);
     }
 
     pub fn addObject(self: *Scene, obj: *Object) !void {
         obj.scene = self;
-        try objects.append(std.heap.page_allocator, obj);
+        try self._objects.append(std.heap.page_allocator, obj);
     }
 
     pub fn setScreen(self: *Scene, screen: *Screen) void {

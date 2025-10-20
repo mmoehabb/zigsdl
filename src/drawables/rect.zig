@@ -5,16 +5,15 @@ const types = @import("../types/mod.zig");
 pub const Rect = struct {
     dim: types.common.Dimensions,
     color: types.common.Color = .{},
-    draw_strategy: modules.DrawStrategy,
+    _draw_strategy: modules.DrawStrategy = modules.DrawStrategy{
+        .draw = draw,
+        .destroy = destroy,
+    },
 
     pub fn new(dim: types.common.Dimensions, color: types.common.Color) Rect {
         return Rect{
             .dim = dim,
             .color = color,
-            .draw_strategy = modules.DrawStrategy{
-                .draw = draw,
-                .destroy = destroy,
-            },
         };
     }
 
@@ -22,7 +21,7 @@ pub const Rect = struct {
         return modules.Drawable{
             .dim = self.dim,
             .color = self.color,
-            .drawStrategy = &self.draw_strategy,
+            .drawStrategy = &self._draw_strategy,
         };
     }
 

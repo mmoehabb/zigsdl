@@ -11,6 +11,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     zigsdl.linkSystemLibrary("SDL3", .{ .needed = true });
+    zigsdl.linkSystemLibrary("SDL3_ttf", .{ .needed = false });
     zigsdl.link_libc = true;
 
     // Add the examples files as executables
@@ -25,6 +26,10 @@ pub fn build(b: *std.Build) void {
     exm1.root_module.addImport("zigsdl", zigsdl);
     b.installArtifact(exm1);
 
+    const exm1_run_cmd = b.addRunArtifact(exm1);
+    const exm1_run_step = b.step("moving_box_example", "Run moving_box_example");
+    exm1_run_step.dependOn(&exm1_run_cmd.step);
+
     const exm2 = b.addExecutable(.{
         .name = "sprite_example",
         .root_module = b.createModule(.{
@@ -36,14 +41,24 @@ pub fn build(b: *std.Build) void {
     exm2.root_module.addImport("zigsdl", zigsdl);
     b.installArtifact(exm2);
 
-    // Create build steps to run the examples
-    const exm1_run_cmd = b.addRunArtifact(exm1);
-    const exm1_run_step = b.step("moving_box_example", "Run moving_box_example");
-    exm1_run_step.dependOn(&exm1_run_cmd.step);
-
     const exm2_run_cmd = b.addRunArtifact(exm2);
     const exm2_run_step = b.step("sprite_example", "Run sprite_example");
     exm2_run_step.dependOn(&exm2_run_cmd.step);
+
+    const exm3 = b.addExecutable(.{
+        .name = "hello_world_example",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/hello_world_example.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm3.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm3);
+
+    const exm3_run_cmd = b.addRunArtifact(exm3);
+    const exm3_run_step = b.step("hello_world_example", "Run hellow_world_example");
+    exm3_run_step.dependOn(&exm3_run_cmd.step);
 
     // Add test step
     const exe_unit_tests = b.addTest(.{
