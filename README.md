@@ -25,8 +25,6 @@ zig fetch --save git+https://github.com/mmoehabb/zigsdl.git
 And then add it as an import in your exe root module:
 
 ```zig
-// This creates another `std.Build.Step.Compile`, but this one builds an executable
-// rather than a static library.
 const exe = b.addExecutable(.{
     .name = "your-project",
     .root_module = exe_mod,
@@ -69,41 +67,6 @@ const zigsdl = @import("zigsdl");
 
 pub fn main() !void {
     // create a drawable object
-    const rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
-    var obj = zigsdl.modules.Object{
-        .position = .{ .x = 20, .y = 20, .z = 1 },
-        .rotation = .{ .x = 0, .y = 0, .z = 0 },
-        .drawable = &rect,
-    };
-
-    // add movement script to the object
-    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
-
-    // create a scene and add the drawable obj into it
-    var scene = zigsdl.modules.Scene.new();
-    try scene.addObject(&obj);
-
-    // create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60, &zigsdl.types.common.LifeCycle{
-        .preOpen = null,
-        .postOpen = null,
-        .preUpdate = null,
-        .postUpdate = null,
-        .preClose = null,
-        .postClose = null,
-    });
-    screen.setScene(&scene);
-    try screen.open();
-}
-```
-
-You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them, and you may use ZigSDL pre-defined scripts or write your own ones as follows:
-
-```zig
-const zigsdl = @import("zigsdl");
-
-pub fn main() !void {
-    // create a drawable object
     var rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
 
     var obj = zigsdl.modules.Object{
@@ -133,6 +96,53 @@ pub fn main() !void {
 }
 ```
 
+You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them, and you may use ZigSDL pre-defined scripts or write your own ones as follows:
+
+```zig
+const zigsdl = @import("zigsdl");
+
+pub const Rect = struct {
+    dim: zigsdl.types.common.Dimensions,
+    color: zigsdl.types.common.Color = .{},
+    _draw_strategy: zigsdl.modules.DrawStrategy = zigsdl.modules.DrawStrategy{
+        .draw = draw,
+        .destroy = destroy,
+    },
+
+    pub fn new(dim: zigsdl.types.common.Dimensions, color: zigsdl.types.common.Color) Rect {
+        return Rect{
+            .dim = dim,
+            .color = color,
+        };
+    }
+
+    pub fn toDrawable(self: *Rect) zigsdl.modules.Drawable {
+        return zigsdl.modules.Drawable{
+            .dim = self.dim,
+            .color = self.color,
+            .drawStrategy = &self._draw_strategy,
+        };
+    }
+
+    fn draw(
+        _: *const zigsdl.modules.DrawStrategy,
+        renderer: *zigsdl.sdl.SDL_Renderer,
+        p: zigsdl.types.common.Position,
+        _: zigsdl.types.common.Rotation,
+        dim: zigsdl.types.common.Dimensions,
+    ) !void {
+        if (!sdl.c.SDL_RenderFillRect(renderer, &sdl.c.SDL_FRect{
+            .x = p.x,
+            .y = p.y,
+            .w = dim.w,
+            .h = dim.h,
+        })) return error.RenderFailed;
+    }
+
+    fn destroy(_: *const zigsdl.modules.DrawStrategy) void {}
+};
+```
+
 Moreover, you may access SDL indirectly from ZigSDL, and use SDL facilities in your scripts:
 
 ```zig
@@ -152,6 +162,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
 
   ```bash
   vcpkg install sdl3
+  vcpkg install sdl3_ttf
   ```
 
 - **Manual Installation**:
@@ -166,6 +177,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
 
   ```bash
   brew install sdl3
+  brew install sdl3_ttf
   ```
 
 - **Manual Installation**:
@@ -181,6 +193,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   ```bash
   sudo apt-get update
   sudo apt-get install libsdl3-dev
+  sudo apt-get install libsdl3_ttf-dev
   ```
 
 - **Manual Installation**:
@@ -201,6 +214,16 @@ This guide provides brief instructions for installing SDL3 on various operating 
 
   ```bash
   sudo dnf install SDL3-devel
+  sudo dnf install SDL3_ttf-devel
+  ```
+
+### Linux (Arch)
+
+- **Using paru**:
+
+  ```bash
+  paru -S sdl3
+  paru -S sdl3_ttf
   ```
 
 ### Verifying Installation
