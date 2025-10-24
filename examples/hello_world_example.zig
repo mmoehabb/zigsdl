@@ -25,14 +25,6 @@ pub fn main() !void {
         320,
         320,
         1000 / 60,
-        &zigsdl.types.common.LifeCycle{
-            .preOpen = null,
-            .postOpen = null,
-            .preUpdate = null,
-            .postUpdate = null,
-            .preClose = null,
-            .postClose = null,
-        },
     );
     screen.setScene(&scene);
     try screen.open();

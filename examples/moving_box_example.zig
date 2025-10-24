@@ -27,14 +27,12 @@ pub fn main() !void {
     try scene.addObject(&obj);
 
     // create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60, &zigsdl.types.common.LifeCycle{
-        .preOpen = null,
-        .postOpen = null,
-        .preUpdate = null,
-        .postUpdate = null,
-        .preClose = null,
-        .postClose = null,
-    });
+    var screen = zigsdl.modules.Screen.new(
+        "Simple Game",
+        320,
+        320,
+        1000 / 60,
+    );
     screen.setScene(&scene);
     try screen.open();
 }

@@ -10,21 +10,27 @@ pub const Screen = struct {
     width: c_int,
     height: c_int,
     rate: u32,
-    lifecycle: *const types.common.LifeCycle,
     eventManager: EventManager,
+    lifecycle: *const types.common.LifeCycle = &types.common.LifeCycle{
+        .preOpen = null,
+        .postOpen = null,
+        .preUpdate = null,
+        .postUpdate = null,
+        .preClose = null,
+        .postClose = null,
+    },
 
     var closed: bool = false;
     var scene: ?*Scene = null;
     var window: ?*sdl.c.SDL_Window = null;
     var renderer: ?*sdl.c.SDL_Renderer = null;
 
-    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32, lifecycle: *const types.common.LifeCycle) Screen {
+    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32) Screen {
         return Screen{
             .title = title,
             .width = width,
             .height = height,
             .rate = rate,
-            .lifecycle = lifecycle,
             .eventManager = EventManager{},
         };
     }
