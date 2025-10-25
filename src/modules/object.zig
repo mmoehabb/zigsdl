@@ -10,32 +10,53 @@ pub const Object = struct {
     position: types.common.Position,
     rotation: types.common.Rotation,
 
-    drawable: ?*const Drawable = null,
+    drawable: ?*Drawable = null,
     scene: ?*Scene = null,
     parent: ?*Object = null,
 
     scripts: std.ArrayList(Script) = std.ArrayList(Script).empty,
     children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 
+    lifecycle: types.common.LifeCycle = types.common.LifeCycle{
+        .preOpen = null,
+        .postOpen = null,
+        .preUpdate = null,
+        .postUpdate = null,
+        .preClose = null,
+        .postClose = null,
+    },
+
     pub fn start(self: *Object) !void {
+        if (self.lifecycle.preOpen) |func| func(self);
+
         for (self.scripts.items) |script| script.start(self);
         for (self.children.items) |child| try child.start();
+
+        if (self.lifecycle.postOpen) |func| func(self);
     }
 
     pub fn update(self: *Object, renderer: *sdl.c.SDL_Renderer) !void {
+        if (self.lifecycle.preUpdate) |func| func(self);
+
         for (self.scripts.items) |script| script.update(self);
         const pos = if (self.parent) |p| self.position.add(p.position) else self.position;
         const rot = if (self.parent) |p| self.rotation.add(p.rotation) else self.rotation;
         if (self.drawable) |d| try d.draw(renderer, pos, rot);
         for (self.children.items) |child| try child.update(renderer);
+
+        if (self.lifecycle.postUpdate) |func| func(self);
     }
 
     pub fn deinit(self: *Object) !void {
+        if (self.lifecycle.preClose) |func| func(self);
+
         if (self.drawable) |d| d.destroy();
         for (self.scripts.items) |script| script.end(self);
         self.scripts.deinit(std.heap.page_allocator);
         for (self.children.items) |child| try child.deinit();
         self.children.deinit(std.heap.page_allocator);
+
+        if (self.lifecycle.postClose) |func| func(self);
     }
 
     pub fn addScript(self: *Object, script: Script) !void {

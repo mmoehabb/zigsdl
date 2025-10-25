@@ -25,7 +25,14 @@ pub const Rect = struct {
         };
     }
 
-    fn draw(_: *const modules.DrawStrategy, renderer: *sdl.c.SDL_Renderer, p: types.common.Position, _: types.common.Rotation, dim: types.common.Dimensions) !void {
+    fn draw(
+        _: *modules.Drawable,
+        _: *const modules.DrawStrategy,
+        renderer: *sdl.c.SDL_Renderer,
+        p: types.common.Position,
+        _: types.common.Rotation,
+        dim: types.common.Dimensions,
+    ) !void {
         if (!sdl.c.SDL_RenderFillRect(renderer, &sdl.c.SDL_FRect{
             .x = p.x,
             .y = p.y,
@@ -34,5 +41,5 @@ pub const Rect = struct {
         })) return error.RenderFailed;
     }
 
-    fn destroy(_: *const modules.DrawStrategy) void {}
+    fn destroy(_: *modules.Drawable, _: *const modules.DrawStrategy) void {}
 };

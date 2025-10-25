@@ -67,46 +67,19 @@ const zigsdl = @import("zigsdl");
 
 pub fn main() !void {
     // create a drawable object
-    const rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+    var rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
+    var rect_drawable = rect.toDrawable();
+
     var obj = zigsdl.modules.Object{
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
-        .drawable = &rect,
+        .drawable = &rect_drawable,
     };
 
     // add movement script to the object
     try obj.addScript(zigsdl.scripts.Movement.new(5, true));
 
     // create a scene and add the drawable obj into it
-    var scene = zigsdl.modules.Scene.new();
-    try scene.addObject(&obj);
-
-    // create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.new("Simple Game", 320, 320, 1000 / 60);
-    screen.setScene(&scene);
-    try screen.open();
-}
-```
-
-You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them, and you may use ZigSDL pre-defined scripts or write your own ones as follows:
-
-```zig
-const zigsdl = @import("zigsdl");
-
-pub fn main() !void {
-    // create a drawable object
-    var rect = zigsdl.drawables.Rect.new(.{ .w = 20, .h = 20, .d = 1 }, .{ .g = 255 });
-
-    var obj = zigsdl.modules.Object{
-        .position = .{ .x = 20, .y = 20, .z = 1 },
-        .rotation = .{ .x = 0, .y = 0, .z = 0 },
-        .drawable = &rect.toDrawable(),
-    };
-
-    // add movement script to the object
-    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
-
-    // create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.new();
     try scene.addObject(&obj);
 
@@ -146,6 +119,7 @@ pub const Rect = struct {
     }
 
     fn draw(
+        _: *zigsdl.modules.Drawable,
         _: *const zigsdl.modules.DrawStrategy,
         renderer: *zigsdl.sdl.SDL_Renderer,
         p: zigsdl.types.common.Position,
@@ -160,7 +134,10 @@ pub const Rect = struct {
         })) return error.RenderFailed;
     }
 
-    fn destroy(_: *const zigsdl.modules.DrawStrategy) void {}
+    fn destroy(
+        _: *zigsdl.modules.Drawable,
+        _: *const zigsdl.modules.DrawStrategy,
+    ) void {}
 };
 ```
 
@@ -263,7 +240,7 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Implement parent-child relationship in objects.
 - [x] Add Sprite drawable to the pre-defined drawables.
 - [x] Add Text drawable to the pre-defined drawables.
-- [ ] Make the object functionality extendable by integrating the LifeCycle within.
+- [x] Make the object functionality extendable by integrating the LifeCycle within.
 - [ ] Use rotations in draw logic of the current pre-defined drawables.
 - [ ] Differentiate between absolute and relative positions and rotations.
 - [ ] Add active state for object, and update only those who have active=true in the scene update method.

@@ -66,6 +66,7 @@ pub const Sprite = struct {
     }
 
     fn draw(
+        _: *modules.Drawable,
         ds: *const modules.DrawStrategy,
         renderer: *sdl.c.SDL_Renderer,
         pos: types.common.Position,
@@ -106,7 +107,7 @@ pub const Sprite = struct {
         }
     }
 
-    fn destroy(ds: *const modules.DrawStrategy) void {
+    fn destroy(_: *modules.Drawable, ds: *const modules.DrawStrategy) void {
         const self = @as(*Sprite, @constCast(@fieldParentPtr("_draw_strategy", ds)));
         if (self._texture) |t| sdl.c.SDL_DestroyTexture(t);
     }

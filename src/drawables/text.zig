@@ -1,6 +1,7 @@
 //! This component can be used to render text on screen
 
 const sdl = @import("../sdl.zig");
+const std = @import("std");
 const modules = @import("../modules/mod.zig");
 const types = @import("../types/mod.zig");
 
@@ -42,6 +43,7 @@ pub const Text = struct {
     }
 
     fn draw(
+        drawable: *modules.Drawable,
         ds: *const modules.DrawStrategy,
         renderer: *sdl.c.SDL_Renderer,
         pos: types.common.Position,
@@ -75,9 +77,15 @@ pub const Text = struct {
             null,
             &dest,
         )) return error.RenderFailed;
+
+        drawable.setDim(.{
+            .w = @as(f32, @floatFromInt(texture.*.w)),
+            .h = @as(f32, @floatFromInt(texture.*.h)),
+            .d = 1,
+        });
     }
 
-    fn destroy(ds: *const modules.DrawStrategy) void {
+    fn destroy(_: *modules.Drawable, ds: *const modules.DrawStrategy) void {
         const self = @as(*Text, @constCast(@fieldParentPtr("_draw_strategy", ds)));
         if (self._texture) |t| sdl.c.SDL_DestroyTexture(t);
     }

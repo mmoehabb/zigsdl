@@ -36,7 +36,7 @@ pub const Screen = struct {
     }
 
     pub fn open(self: *Screen) !void {
-        if (self.lifecycle.preOpen) |func| func();
+        if (self.lifecycle.preOpen) |func| func(self);
 
         if (!sdl.c.SDL_Init(sdl.c.SDL_INIT_VIDEO)) {
             sdl.c.SDL_Log("Unable to initialize SDL: %s", sdl.c.SDL_GetError());
@@ -59,14 +59,14 @@ pub const Screen = struct {
 
         if (scene) |s| try s.start();
 
-        if (self.lifecycle.postOpen) |func| func();
+        if (self.lifecycle.postOpen) |func| func(self);
 
         closed = false;
         while (!closed) try self.update();
     }
 
     fn update(self: *Screen) !void {
-        if (self.lifecycle.preUpdate) |func| func();
+        if (self.lifecycle.preUpdate) |func| func(self);
 
         const event = self.eventManager.invokeEventLoop();
         if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
@@ -76,12 +76,12 @@ pub const Screen = struct {
         _ = sdl.c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         _ = sdl.c.SDL_RenderPresent(renderer);
 
-        if (self.lifecycle.postUpdate) |func| func();
+        if (self.lifecycle.postUpdate) |func| func(self);
         sdl.c.SDL_Delay(self.rate);
     }
 
     pub fn close(self: *Screen) !void {
-        if (self.lifecycle.preClose) |func| func();
+        if (self.lifecycle.preClose) |func| func(self);
 
         _ = renderer orelse return error.ScreenNotInitialized;
         _ = window orelse return error.ScreenNotInitialized;
@@ -90,7 +90,7 @@ pub const Screen = struct {
         self.eventManager.deinit();
 
         closed = true;
-        if (self.lifecycle.postClose) |func| func();
+        if (self.lifecycle.postClose) |func| func(self);
 
         sdl.c.TTF_Quit();
         sdl.c.SDL_DestroyRenderer(renderer);
