@@ -242,8 +242,10 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Add Text drawable to the pre-defined drawables.
 - [x] Make the object functionality extendable by integrating the LifeCycle within.
 - [ ] Use rotations in draw logic of the current pre-defined drawables.
+- [ ] Use SDL_Image lib in _sprite_ pre-defined drawable.
 - [ ] Differentiate between absolute and relative positions and rotations.
 - [ ] Add active state for object, and update only those who have active=true in the scene update method.
+- [ ] Add name and tag properties into objects.
 - [ ] Write remove methods for event-manager, and do cleanup, accordingly on scripts _end_ method.
 - [ ] Write unit tests for all modules.
 
