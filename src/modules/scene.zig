@@ -26,7 +26,7 @@ pub const Scene = struct {
     }
 
     pub fn addObject(self: *Scene, obj: *Object) !void {
-        obj.scene = self;
+        obj.setScene(self);
         try self._objects.append(std.heap.page_allocator, obj);
     }
 

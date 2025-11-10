@@ -1,265 +1,49 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
-const Callback = *const fn () void;
-pub const Key = enum {
-    Unknown,
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J,
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
-    X,
-    Y,
-    Z,
-    Num0,
-    Num1,
-    Num2,
-    Num3,
-    Num4,
-    Num5,
-    Num6,
-    Num7,
-    Num8,
-    Num9,
-    Return,
-    Escape,
-    Backspace,
-    Tab,
-    Space,
-    Minus,
-    Equals,
-    LeftBracket,
-    RightBracket,
-    Backslash,
-    NonUsHash,
-    Semicolon,
-    Apostrophe,
-    Grave,
-    Comma,
-    Period,
-    Slash,
-    CapsLock,
-    F1,
-    F2,
-    F3,
-    F4,
-    F5,
-    F6,
-    F7,
-    F8,
-    F9,
-    F10,
-    F11,
-    F12,
-    PrintScreen,
-    ScrollLock,
-    Pause,
-    Insert,
-    Home,
-    PageUp,
-    Delete,
-    End,
-    PageDown,
-    Right,
-    Left,
-    Down,
-    Up,
-    NumLockClear,
-    KpDivide,
-    KpMultiply,
-    KpMinus,
-    KpPlus,
-    KpEnter,
-    Kp1,
-    Kp2,
-    Kp3,
-    Kp4,
-    Kp5,
-    Kp6,
-    Kp7,
-    Kp8,
-    Kp9,
-    Kp0,
-    KpPeriod,
-    NonUsBackslash,
-    Application,
-    Power,
-    KpEquals,
-    F13,
-    F14,
-    F15,
-    F16,
-    F17,
-    F18,
-    F19,
-    F20,
-    F21,
-    F22,
-    F23,
-    F24,
-    Execute,
-    Help,
-    Menu,
-    Select,
-    Stop,
-    Again,
-    Undo,
-    Cut,
-    Copy,
-    Paste,
-    Find,
-    Mute,
-    VolumeUp,
-    VolumeDown,
-    KpComma,
-    KpEqualsAS400,
-    International1,
-    International2,
-    International3,
-    International4,
-    International5,
-    International6,
-    International7,
-    International8,
-    International9,
-    Lang1,
-    Lang2,
-    Lang3,
-    Lang4,
-    Lang5,
-    Lang6,
-    Lang7,
-    Lang8,
-    Lang9,
-    AltErase,
-    SysReq,
-    Cancel,
-    Clear,
-    Prior,
-    Return2,
-    Separator,
-    Out,
-    Oper,
-    ClearAgain,
-    CrSel,
-    ExSel,
-    Kp00,
-    Kp000,
-    ThousandsSeparator,
-    DecimalSeparator,
-    CurrencyUnit,
-    CurrencySubUnit,
-    KpLeftParen,
-    KpRightParen,
-    KpLeftBrace,
-    KpRightBrace,
-    KpTab,
-    KpBackspace,
-    KpA,
-    KpB,
-    KpC,
-    KpD,
-    KpE,
-    KpF,
-    KpXor,
-    KpPower,
-    KpPercent,
-    KpLess,
-    KpGreater,
-    KpAmpersand,
-    KpDblAmpersand,
-    KpVerticalBar,
-    KpDblVerticalBar,
-    KpColon,
-    KpHash,
-    KpSpace,
-    KpAt,
-    KpExclam,
-    KpMemStore,
-    KpMemRecall,
-    KpMemClear,
-    KpMemAdd,
-    KpMemSubtract,
-    KpMemMultiply,
-    KpMemDivide,
-    KpPlusMinus,
-    KpClear,
-    KpClearEntry,
-    KpBinary,
-    KpOctal,
-    KpDecimal,
-    KpHexadecimal,
-    LCtrl,
-    LShift,
-    LAlt,
-    LGui,
-    RCtrl,
-    RShift,
-    RAlt,
-    RGui,
-    Mode,
-    MediaSelect,
-    AcSearch,
-    AcHome,
-    AcBack,
-    AcForward,
-    AcStop,
-    AcRefresh,
-    AcBookmarks,
-    LeftMouse,
-    RightMouse,
-    MiddleMouse,
-    X1Mouse,
-    X2Mouse,
-};
+const Key = @import("../types/event.zig").Key;
+const KeyState = @import("../types/event.zig").KeyState;
 
 pub const EventManager = struct {
-    var keyDownFnHash = std.AutoHashMap(Key, std.ArrayList(Callback)).init(std.heap.page_allocator);
-    var keyUpFnHash = std.AutoHashMap(Key, std.ArrayList(Callback)).init(std.heap.page_allocator);
+    var keys = std.AutoHashMap(Key, KeyState).init(std.heap.page_allocator);
 
     pub fn deinit(_: *EventManager) void {
-        keyDownFnHash.deinit();
-        keyUpFnHash.deinit();
+        keys.deinit();
     }
 
-    pub fn invokeEventLoop(self: *EventManager) sdl.c.SDL_Event {
+    pub fn getKeys(_: *EventManager) std.AutoHashMap(Key, KeyState) {
+        return keys;
+    }
+
+    pub fn isKeyDown(_: *EventManager, key: Key) bool {
+        const state = keys.get(key) orelse .Up;
+        return state == .Down;
+    }
+
+    pub fn isKeyUp(_: *EventManager, key: Key) bool {
+        const state = keys.get(key) orelse .Down;
+        return state == .Up;
+    }
+
+    pub fn invokeEventLoop(self: *EventManager) !sdl.c.SDL_Event {
         var event: sdl.c.SDL_Event = undefined;
         while (sdl.c.SDL_PollEvent(&event)) {
             switch (event.type) {
                 sdl.c.SDL_EVENT_KEY_DOWN => {
                     const key = scancodeToKey(event.key.scancode);
-                    self.keyDown(key);
+                    try self.keyDown(key);
                 },
                 sdl.c.SDL_EVENT_KEY_UP => {
                     const key = scancodeToKey(event.key.scancode);
-                    self.keyUp(key);
+                    try self.keyUp(key);
                 },
                 sdl.c.SDL_EVENT_MOUSE_BUTTON_DOWN => {
                     const key = mouseCodeToEnum(event.key.scancode);
-                    self.keyDown(key);
+                    try self.keyDown(key);
                 },
                 sdl.c.SDL_EVENT_MOUSE_BUTTON_UP => {
                     const key = mouseCodeToEnum(event.key.scancode);
-                    self.keyUp(key);
+                    try self.keyUp(key);
                 },
                 else => return event,
             }
@@ -267,34 +51,12 @@ pub const EventManager = struct {
         return event;
     }
 
-    fn keyDown(_: *EventManager, key: Key) void {
-        if (keyDownFnHash.get(key)) |callbacks| {
-            for (callbacks.items) |callback| callback();
-        }
+    fn keyDown(_: *EventManager, key: Key) !void {
+        try keys.put(key, .Down);
     }
 
-    fn keyUp(_: *EventManager, key: Key) void {
-        if (keyUpFnHash.get(key)) |callbacks| {
-            for (callbacks.items) |callback| callback();
-        }
-    }
-
-    pub fn onKeyDown(_: *EventManager, key: Key, callback: Callback) !void {
-        var arr = keyDownFnHash.getPtr(key) orelse blk: {
-            const tmp = std.ArrayList(Callback).empty;
-            try keyDownFnHash.put(key, tmp);
-            break :blk keyDownFnHash.getPtr(key);
-        };
-        try arr.?.append(std.heap.page_allocator, callback);
-    }
-
-    pub fn onKeyUp(_: *EventManager, key: Key, callback: Callback) !void {
-        var arr = keyUpFnHash.getPtr(key) orelse blk: {
-            const tmp = std.ArrayList(Callback).empty;
-            try keyUpFnHash.put(key, tmp);
-            break :blk keyUpFnHash.getPtr(key);
-        };
-        try arr.?.append(std.heap.page_allocator, callback);
+    fn keyUp(_: *EventManager, key: Key) !void {
+        try keys.put(key, .Up);
     }
 
     fn scancodeToKey(scancode: sdl.c.SDL_Scancode) Key {

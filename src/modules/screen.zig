@@ -68,7 +68,7 @@ pub const Screen = struct {
     fn update(self: *Screen) !void {
         if (self.lifecycle.preUpdate) |func| func(self);
 
-        const event = self.eventManager.invokeEventLoop();
+        const event = try self.eventManager.invokeEventLoop();
         if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
         _ = sdl.c.SDL_RenderClear(renderer);

@@ -1,4 +1,5 @@
 const zigsdl = @import("zigsdl");
+const std = @import("std");
 
 pub fn main() !void {
     // create a drawable object
@@ -12,9 +13,10 @@ pub fn main() !void {
     };
 
     // add movement script to the object
-    try obj.addScript(zigsdl.scripts.Movement.new(5, true));
+    var movement = zigsdl.scripts.Movement{ .velocity = 5, .smooth = true };
+    try obj.addScript(@constCast(&movement.toScript()));
 
-    // add child objects to obj
+    // add a child object to obj
     var rect2 = zigsdl.drawables.Rect.new(.{ .w = 10, .h = 10, .d = 1 }, .{ .r = 255 });
     var rect2_drawable = rect2.toDrawable();
     var obj2 = zigsdl.modules.Object{
