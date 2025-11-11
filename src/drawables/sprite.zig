@@ -1,5 +1,6 @@
 //! This component extends the drawable component to include facilities to render sprites/animations
 
+const std = @import("std");
 const sdl = @import("../sdl.zig");
 const modules = @import("../modules/mod.zig");
 const types = @import("../types/mod.zig");
@@ -70,7 +71,7 @@ pub const Sprite = struct {
         ds: *const modules.DrawStrategy,
         renderer: *sdl.c.SDL_Renderer,
         pos: types.common.Position,
-        _: types.common.Rotation,
+        rot: types.common.Rotation,
         dim: types.common.Dimensions,
     ) !void {
         const self = @as(*Sprite, @constCast(@fieldParentPtr("_draw_strategy", ds)));
@@ -94,11 +95,24 @@ pub const Sprite = struct {
             .w = dim.w,
             .h = dim.h,
         };
-        if (!sdl.c.SDL_RenderTexture(
+        const center = sdl.c.SDL_FPoint{
+            .x = dim.w / 2,
+            .y = dim.h / 2,
+        };
+        const flip: c_uint = blk: {
+            if (rot.x > 0) break :blk sdl.c.SDL_FLIP_VERTICAL;
+            if (rot.y > 0) break :blk sdl.c.SDL_FLIP_HORIZONTAL;
+            break :blk sdl.c.SDL_FLIP_NONE;
+        };
+
+        if (!sdl.c.SDL_RenderTextureRotated(
             renderer,
             texture,
             &src,
             &dest,
+            rot.z,
+            &center,
+            flip,
         )) return error.RenderFailed;
 
         if (sdl.c.SDL_GetTicks() - self._last_ticks >= self.ms) {

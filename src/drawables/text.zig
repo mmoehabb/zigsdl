@@ -47,7 +47,7 @@ pub const Text = struct {
         ds: *const modules.DrawStrategy,
         renderer: *sdl.c.SDL_Renderer,
         pos: types.common.Position,
-        _: types.common.Rotation,
+        rot: types.common.Rotation,
         _: types.common.Dimensions,
     ) !void {
         const self = @as(*Text, @constCast(@fieldParentPtr("_draw_strategy", ds)));
@@ -71,11 +71,26 @@ pub const Text = struct {
             .w = @as(f32, @floatFromInt(texture.*.w)),
             .h = @as(f32, @floatFromInt(texture.*.h)),
         };
-        if (!sdl.c.SDL_RenderTexture(
+
+        const center = sdl.c.SDL_FPoint{
+            .x = dest.w / 2,
+            .y = dest.h / 2,
+        };
+
+        const flip: c_uint = blk: {
+            if (rot.x > 0) break :blk sdl.c.SDL_FLIP_VERTICAL;
+            if (rot.y > 0) break :blk sdl.c.SDL_FLIP_HORIZONTAL;
+            break :blk sdl.c.SDL_FLIP_NONE;
+        };
+
+        if (!sdl.c.SDL_RenderTextureRotated(
             renderer,
             texture,
             null,
             &dest,
+            rot.z,
+            &center,
+            flip,
         )) return error.RenderFailed;
 
         drawable.setDim(.{

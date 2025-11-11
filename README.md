@@ -242,7 +242,7 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Add Text drawable to the pre-defined drawables.
 - [x] Make the object functionality extendable by integrating the LifeCycle within.
 - [x] Refactor the event-manager; it shall no longer store callbacks, only it will mutate a global key status state.
-- [ ] Use rotations in draw logic of the current pre-defined drawables.
+- [x] Use rotations in draw logic of the current pre-defined drawables.
 - [ ] Use SDL_Image lib in _sprite_ pre-defined drawable.
 - [ ] Differentiate between absolute and relative positions and rotations.
 - [ ] Add active state for object, and update only those who have active=true in the scene update method.
