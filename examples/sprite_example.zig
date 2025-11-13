@@ -3,7 +3,7 @@ const zigsdl = @import("zigsdl");
 pub fn main() !void {
     // create a drawable object
     var sprite = zigsdl.drawables.Sprite.new(.{
-        .bmp_path = "./examples/assets/anim_explosion.bmp",
+        .img_path = "./examples/assets/anim_explosion.png",
         .frames_count = 7,
         .frame_width = 128,
         .frame_height = 140,

@@ -1,4 +1,4 @@
-//! This component extends the drawable component to include facilities to render sprites/animations
+//! This component extends the drawable component with facilities to render sprites/animations
 
 const std = @import("std");
 const sdl = @import("../sdl.zig");
@@ -7,7 +7,7 @@ const types = @import("../types/mod.zig");
 
 pub const Sprite = struct {
     /// The path of the sprite sheet file.
-    bmp_path: []const u8,
+    img_path: []const u8,
 
     /// The number of frames of the animation.
     frames_count: u32,
@@ -39,7 +39,7 @@ pub const Sprite = struct {
 
     pub fn new(s: Sprite) Sprite {
         return Sprite{
-            .bmp_path = s.bmp_path,
+            .img_path = s.img_path,
             .frames_count = s.frames_count,
             .frame_width = s.frame_width,
             .frame_height = s.frame_height,
@@ -61,8 +61,8 @@ pub const Sprite = struct {
         };
     }
 
-    pub fn setBmpPath(self: *Sprite, bmp_path: []const u8) void {
-        self.bmp_path = bmp_path;
+    pub fn setImgPath(self: *Sprite, img_path: []const u8) void {
+        self.img_path = img_path;
         self._texture = null;
     }
 
@@ -77,7 +77,7 @@ pub const Sprite = struct {
         const self = @as(*Sprite, @constCast(@fieldParentPtr("_draw_strategy", ds)));
 
         const texture = self._texture orelse blk: {
-            const surface = sdl.c.SDL_LoadBMP(self.bmp_path.ptr);
+            const surface = sdl.c.IMG_Load(self.img_path.ptr);
             defer sdl.c.SDL_DestroySurface(surface);
             const texture = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
             break :blk texture;

@@ -11,7 +11,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     zigsdl.linkSystemLibrary("SDL3", .{ .needed = true });
-    zigsdl.linkSystemLibrary("SDL3_ttf", .{ .needed = false });
+    zigsdl.linkSystemLibrary("SDL3_ttf", .{ .needed = true });
+    zigsdl.linkSystemLibrary("SDL3_image", .{ .needed = true });
     zigsdl.link_libc = true;
 
     // Add the examples files as executables

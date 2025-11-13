@@ -192,6 +192,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   sudo apt-get update
   sudo apt-get install libsdl3-dev
   sudo apt-get install libsdl3_ttf-dev
+  sudo apt-get install libsdl3_image-dev
   ```
 
 - **Manual Installation**:
@@ -213,6 +214,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   ```bash
   sudo dnf install SDL3-devel
   sudo dnf install SDL3_ttf-devel
+  sudo dnf install SDL3_image-devel
   ```
 
 ### Linux (Arch)
@@ -222,6 +224,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   ```bash
   paru -S sdl3
   paru -S sdl3_ttf
+  paru -S sdl3_image
   ```
 
 ### Verifying Installation
@@ -243,11 +246,12 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Make the object functionality extendable by integrating the LifeCycle within.
 - [x] Refactor the event-manager; it shall no longer store callbacks, only it will mutate a global key status state.
 - [x] Use rotations in draw logic of the current pre-defined drawables.
-- [ ] Use SDL_Image lib in _sprite_ pre-defined drawable.
-- [ ] Differentiate between absolute and relative positions and rotations.
+- [x] Differentiate between absolute and relative positions and rotations.
+- [x] Use SDL_Image lib in _sprite_ pre-defined drawable.
 - [ ] Add active state for object, and update only those who have active=true in the scene update method.
 - [ ] Add name and tag properties into objects.
 - [ ] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
+- [ ] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
 - [ ] Comment/document each method and function.
 - [ ] Write unit tests for all modules.
 
