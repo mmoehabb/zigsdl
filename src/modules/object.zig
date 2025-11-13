@@ -61,6 +61,26 @@ pub const Object = struct {
         if (self.lifecycle.postClose) |func| func(self);
     }
 
+    pub fn getAbsPosition(self: *Object) types.common.Position {
+        const parentPos = if (self.parent) |obj| obj.position else types.common.Position{};
+        return self.position.add(parentPos);
+    }
+
+    pub fn setAbsPosition(self: *Object, pos: types.common.Position) void {
+        const parentPos = if (self.parent) |obj| obj.position else types.common.Position{};
+        self.position = pos.subtract(parentPos);
+    }
+
+    pub fn getAbsRotation(self: *Object) types.common.Rotation {
+        const parentRot = if (self.parent) |obj| obj.rotation else types.common.Rotation{};
+        return self.rotation.add(parentRot);
+    }
+
+    pub fn setAbsRotation(self: *Object, rot: types.common.Rotation) void {
+        const parentRot = if (self.parent) |obj| obj.rotation else types.common.Rotation{};
+        self.rotation = rot.subtract(parentRot);
+    }
+
     pub fn addScript(self: *Object, script: *Script) !void {
         try self.scripts.append(std.heap.page_allocator, script);
     }

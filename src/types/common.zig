@@ -1,9 +1,9 @@
 pub const Position = struct {
-    x: f32,
-    y: f32,
-    z: f32,
+    x: f32 = 0,
+    y: f32 = 0,
+    z: f32 = 0,
 
-    pub fn add(self: *Position, pos: Position) Position {
+    pub fn add(self: Position, pos: Position) Position {
         return .{
             .x = self.x + pos.x,
             .y = self.y + pos.y,
@@ -11,7 +11,7 @@ pub const Position = struct {
         };
     }
 
-    pub fn subtract(self: *Position, pos: Position) Position {
+    pub fn subtract(self: Position, pos: Position) Position {
         return .{
             .x = self.x - pos.x,
             .y = self.y - pos.y,
@@ -21,11 +21,11 @@ pub const Position = struct {
 };
 
 pub const Rotation = struct {
-    x: f32,
-    y: f32,
-    z: f32,
+    x: f32 = 0,
+    y: f32 = 0,
+    z: f32 = 0,
 
-    pub fn add(self: *Rotation, rot: Rotation) Rotation {
+    pub fn add(self: Rotation, rot: Rotation) Rotation {
         return .{
             .x = self.x + rot.x,
             .y = self.y + rot.y,
@@ -33,7 +33,7 @@ pub const Rotation = struct {
         };
     }
 
-    pub fn subtract(self: *Rotation, rot: Rotation) Rotation {
+    pub fn subtract(self: Rotation, rot: Rotation) Rotation {
         return .{
             .x = self.x - rot.x,
             .y = self.y - rot.y,
