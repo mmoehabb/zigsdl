@@ -12,7 +12,7 @@ pub const Scene = struct {
         return Scene{ .screen = undefined };
     }
 
-    pub fn deinit(self: *Scene) void {
+    pub fn deinit(self: *Scene) !void {
         for (self._objects.items) |obj| try obj.deinit();
         self._objects.deinit(std.heap.page_allocator);
     }

@@ -13,11 +13,11 @@ pub fn main() !void {
     });
     var text_drawable = text.toDrawable();
 
-    var obj = zigsdl.modules.Object{
+    var obj = zigsdl.modules.Object.new(.{
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
-    };
+    });
 
     // center the drawable object in the screen
     obj.lifecycle.postUpdate = struct {

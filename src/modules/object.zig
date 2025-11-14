@@ -10,12 +10,15 @@ pub const Object = struct {
     position: types.common.Position,
     rotation: types.common.Rotation,
 
-    drawable: ?*Drawable = null,
-    scene: ?*Scene = null,
-    parent: ?*Object = null,
+    name: []const u8,
+    tag: []const u8,
+    active: bool,
+    drawable: ?*Drawable,
+    scene: ?*Scene,
+    parent: ?*Object,
 
-    scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
-    children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
+    _scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
+    _children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 
     lifecycle: types.common.LifeCycle = types.common.LifeCycle{
         .preOpen = null,
@@ -26,24 +29,48 @@ pub const Object = struct {
         .postClose = null,
     },
 
+    pub fn new(props: struct {
+        position: types.common.Position,
+        rotation: types.common.Rotation,
+        name: []const u8 = "unnamed",
+        tag: []const u8 = "untagged",
+        active: bool = true,
+        drawable: ?*Drawable = null,
+        scene: ?*Scene = null,
+        parent: ?*Object = null,
+    }) Object {
+        return Object{
+            .position = props.position,
+            .rotation = props.rotation,
+            .name = props.name,
+            .tag = props.tag,
+            .active = props.active,
+            .drawable = props.drawable,
+            .scene = props.scene,
+            .parent = props.parent,
+        };
+    }
+
     pub fn start(self: *Object) !void {
+        if (!self.active) return;
         if (self.lifecycle.preOpen) |func| func(self);
 
-        for (self.scripts.items) |script| script.start(self);
-        for (self.children.items) |child| try child.start();
+        for (self._scripts.items) |script| script.start(self);
+        for (self._children.items) |child| try child.start();
 
         if (self.lifecycle.postOpen) |func| func(self);
     }
 
     pub fn update(self: *Object, renderer: *sdl.c.SDL_Renderer) !void {
+        if (!self.active) return;
         if (self.lifecycle.preUpdate) |func| func(self);
-        for (self.scripts.items) |script| script.update(self);
+        for (self._scripts.items) |script| script.update(self);
 
         const pos = if (self.parent) |p| self.position.add(p.position) else self.position;
         const rot = if (self.parent) |p| self.rotation.add(p.rotation) else self.rotation;
 
         if (self.drawable) |d| try d.draw(renderer, pos, rot);
-        for (self.children.items) |child| try child.update(renderer);
+        for (self._children.items) |child| try child.update(renderer);
         if (self.lifecycle.postUpdate) |func| func(self);
     }
 
@@ -52,11 +79,11 @@ pub const Object = struct {
 
         if (self.drawable) |d| d.destroy();
 
-        for (self.scripts.items) |script| script.end(self);
-        self.scripts.deinit(std.heap.page_allocator);
+        for (self._scripts.items) |script| script.end(self);
+        self._scripts.deinit(std.heap.page_allocator);
 
-        for (self.children.items) |child| try child.deinit();
-        self.children.deinit(std.heap.page_allocator);
+        for (self._children.items) |child| try child.deinit();
+        self._children.deinit(std.heap.page_allocator);
 
         if (self.lifecycle.postClose) |func| func(self);
     }
@@ -82,16 +109,16 @@ pub const Object = struct {
     }
 
     pub fn addScript(self: *Object, script: *Script) !void {
-        try self.scripts.append(std.heap.page_allocator, script);
+        try self._scripts.append(std.heap.page_allocator, script);
     }
 
     pub fn setScene(self: *Object, scene: *Scene) void {
         self.scene = scene;
-        for (self.children.items) |child| child.setScene(scene);
+        for (self._children.items) |child| child.setScene(scene);
     }
 
     pub fn getChildByIndex(self: *Object, index: usize) *Object {
-        return self.children.items[index];
+        return self._children.items[index];
     }
 
     pub fn attach(self: *Object, parent: *Object) void {
@@ -107,20 +134,20 @@ pub const Object = struct {
     }
 
     pub fn addChild(self: *Object, child: *Object) !void {
-        try self.children.append(std.heap.page_allocator, child);
+        try self._children.append(std.heap.page_allocator, child);
         child.attach(self);
     }
 
     pub fn rmvChild(self: *Object, child: *Object) void {
         var index: ?usize = undefined;
-        for (self.children.items, 0..) |obj, i| {
+        for (self._children.items, 0..) |obj, i| {
             if (obj == child) {
                 index = i;
                 break;
             }
         }
         if (index) |i| {
-            const c = self.children.orderedRemove(i);
+            const c = self._children.orderedRemove(i);
             c.detach();
         }
     }

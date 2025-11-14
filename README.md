@@ -248,10 +248,10 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Use rotations in draw logic of the current pre-defined drawables.
 - [x] Differentiate between absolute and relative positions and rotations.
 - [x] Use SDL_Image lib in _sprite_ pre-defined drawable.
-- [ ] Add active state for object, and update only those who have active=true in the scene update method.
-- [ ] Add name and tag properties into objects.
-- [ ] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
+- [x] Add active state for object, and update only those who have active=true in the scene update method.
+- [x] Add name and tag properties into objects.
 - [ ] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
+- [ ] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
 - [ ] Comment/document each method and function.
 - [ ] Write unit tests for all modules.
 

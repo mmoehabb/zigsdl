@@ -86,7 +86,7 @@ pub const Screen = struct {
         _ = renderer orelse return error.ScreenNotInitialized;
         _ = window orelse return error.ScreenNotInitialized;
 
-        if (scene) |s| s.deinit();
+        if (scene) |s| try s.deinit();
         self.eventManager.deinit();
 
         closed = true;
