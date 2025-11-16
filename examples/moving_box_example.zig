@@ -10,6 +10,7 @@ pub fn main() !void {
     var rect_drawable = rect.toDrawable();
 
     var obj = zigsdl.modules.Object.new(.{
+        .name = "GreenBox",
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect_drawable,
@@ -26,6 +27,7 @@ pub fn main() !void {
     );
     var rect2_drawable = rect2.toDrawable();
     var obj2 = zigsdl.modules.Object.new(.{
+        .name = "RedBox",
         .position = .{ .x = 5, .y = 5, .z = 0 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect2_drawable,

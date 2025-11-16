@@ -90,7 +90,9 @@ pub fn main() !void {
 }
 ```
 
-You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them, and you may use ZigSDL pre-defined scripts or write your own ones as follows:
+You may add as many objects as you want in the scene, you can easily add different functionalities and behaviour to your objects by adding scripts into them; you may use ZigSDL pre-defined drawables and/or scripts or write your own ones as follows:
+
+The Rect Drawable:
 
 ```zig
 const zigsdl = @import("zigsdl");
@@ -138,6 +140,49 @@ pub const Rect = struct {
         _: *zigsdl.modules.Drawable,
         _: *const zigsdl.modules.DrawStrategy,
     ) void {}
+};
+```
+
+The Movement script:
+
+```ZIG
+const zigsdl = @import("zigsdl");
+
+pub const Movement = struct {
+    velocity: f32 = 5,
+    smooth: bool = true,
+
+    _script_strategy: zigsdl.modules.ScriptStrategy = zigsdl.modules.ScriptStrategy{
+        .start = start,
+        .update = update,
+        .end = end,
+    },
+
+    _last_pressed: zigsdl.types.event.Key = .Unknown,
+
+    pub fn toScript(self: *Movement) zigsdl.modules.Script {
+        return modules.Script{ .strategy = &self._script_strategy };
+    }
+
+    fn start(_: *zigsdl.modules.Script, _: *zigsdl.modules.Object) void {}
+
+    fn update(s: *zigsdl.modules.Script, o: *zigsdl.modules.Object) void {
+        const obj = o;
+        const self = @as(*Movement, @constCast(@fieldParentPtr("_script_strategy", s.strategy)));
+        var em = o.*._scene.?.screen.?.em;
+
+        if (self.smooth) {
+            if (em.isKeyDown(.W)) obj.position.y -= self.velocity;
+            if (em.isKeyDown(.S)) obj.position.y += self.velocity;
+            if (em.isKeyDown(.D)) obj.position.x += self.velocity;
+            if (em.isKeyDown(.A)) obj.position.x -= self.velocity;
+            return;
+        }
+
+      // ...
+    }
+
+    fn end(_: *zigsdl.modules.Script, _: *zigsdl.modules.Object) void {}
 };
 ```
 

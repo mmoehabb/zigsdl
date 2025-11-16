@@ -1,8 +1,8 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
-const Scene = @import("scene.zig").Scene;
 const EventManager = @import("event-manager.zig").EventManager;
+const Scene = @import("scene.zig").Scene;
 const types = @import("../types/mod.zig");
 
 pub const Screen = struct {
@@ -10,7 +10,6 @@ pub const Screen = struct {
     width: c_int,
     height: c_int,
     rate: u32,
-    eventManager: EventManager,
     lifecycle: *const types.common.LifeCycle = &types.common.LifeCycle{
         .preOpen = null,
         .postOpen = null,
@@ -19,6 +18,7 @@ pub const Screen = struct {
         .preClose = null,
         .postClose = null,
     },
+    em: EventManager,
 
     var closed: bool = false;
     var scene: ?*Scene = null;
@@ -31,7 +31,7 @@ pub const Screen = struct {
             .width = width,
             .height = height,
             .rate = rate,
-            .eventManager = EventManager{},
+            .em = EventManager{},
         };
     }
 
@@ -68,7 +68,7 @@ pub const Screen = struct {
     fn update(self: *Screen) !void {
         if (self.lifecycle.preUpdate) |func| func(self);
 
-        const event = try self.eventManager.invokeEventLoop();
+        const event = try self.em.invokeEventLoop();
         if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
         _ = sdl.c.SDL_RenderClear(renderer);
@@ -87,7 +87,7 @@ pub const Screen = struct {
         _ = window orelse return error.ScreenNotInitialized;
 
         if (scene) |s| try s.deinit();
-        self.eventManager.deinit();
+        self.em.deinit();
 
         closed = true;
         if (self.lifecycle.postClose) |func| func(self);

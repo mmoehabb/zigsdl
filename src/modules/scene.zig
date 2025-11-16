@@ -33,4 +33,38 @@ pub const Scene = struct {
     pub fn setScreen(self: *Scene, screen: *Screen) void {
         self.screen = screen;
     }
+
+    pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
+        for (self._objects.items) |obj| {
+            if (std.mem.eql(u8, obj.name, name)) return obj;
+        }
+
+        for (self._objects.items) |obj| {
+            const found = obj.getChildByName(name);
+            if (found) |c| return c;
+        }
+
+        return null;
+    }
+
+    pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) []?*Object {
+        var res: [max]?*Object = .{null} ** max;
+
+        var i: u8 = 0;
+        for (self._objects.items) |o1| {
+            if (i >= max) break;
+            if (std.mem.eql(u8, o1.tag, tag)) res[i] = o1;
+            i = i + 1;
+
+            const inner_childs = o1.getChildsByTag(tag, max);
+            for (inner_childs) |o2| {
+                if (i >= max) break;
+                if (o2) |_| {} else break;
+                if (std.mem.eql(u8, o2.?.tag, tag)) res[i] = o2;
+                i = i + 1;
+            }
+        }
+
+        return res[0..i];
+    }
 };

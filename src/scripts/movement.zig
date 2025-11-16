@@ -1,3 +1,4 @@
+const std = @import("std");
 const modules = @import("../modules/mod.zig");
 const types = @import("../types/mod.zig");
 
@@ -22,7 +23,7 @@ pub const Movement = struct {
     fn update(s: *modules.Script, o: *modules.Object) void {
         const obj = o;
         const self = @as(*Movement, @constCast(@fieldParentPtr("_script_strategy", s.strategy)));
-        var em = o.*.scene.?.screen.?.eventManager;
+        var em = o.*._scene.?.screen.?.em;
 
         if (self.smooth) {
             if (em.isKeyDown(.W)) obj.position.y -= self.velocity;
