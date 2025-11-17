@@ -282,6 +282,11 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 
 ## TODOs
 
+### Version 0.0.1
+- [x] Layout the main architecture and project directory structure.
+- [x] Write the basic implementation, with SDL, of few components that the package serves.
+- [x] Write few examples that uses the package in producing some "reactive visuals".
+
 ### Version 0.1.0
 
 - [x] Write a comprehensive set of keys in the event-manager component.
@@ -289,12 +294,13 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Add Sprite drawable to the pre-defined drawables.
 - [x] Add Text drawable to the pre-defined drawables.
 - [x] Make the object functionality extendable by integrating the LifeCycle within.
-- [x] Refactor the event-manager; it shall no longer store callbacks, only it will mutate a global key status state.
+- [x] Refactor the event-manager; it shall no longer store callbacks, it shall only mutate a global key status state.
 - [x] Use rotations in draw logic of the current pre-defined drawables.
 - [x] Differentiate between absolute and relative positions and rotations.
 - [x] Use SDL_Image lib in _sprite_ pre-defined drawable.
 - [x] Add active state for object, and update only those who have active=true in the scene update method.
 - [x] Add name and tag properties into objects.
+- [ ] Write a script file for playing sounds.
 - [ ] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
 - [ ] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
 - [ ] Comment/document each method and function.
