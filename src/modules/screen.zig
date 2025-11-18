@@ -39,7 +39,12 @@ pub const Screen = struct {
         if (self.lifecycle.preOpen) |func| func(self);
 
         if (!sdl.c.SDL_Init(sdl.c.SDL_INIT_VIDEO)) {
-            sdl.c.SDL_Log("Unable to initialize SDL: %s", sdl.c.SDL_GetError());
+            sdl.c.SDL_Log("Unable to initialize SDL Video: %s", sdl.c.SDL_GetError());
+            return error.SDLInitializationFailed;
+        }
+
+        if (!sdl.c.SDL_Init(sdl.c.SDL_INIT_AUDIO)) {
+            sdl.c.SDL_Log("Unable to initialize SDL Audio: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         }
 
