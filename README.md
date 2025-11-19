@@ -301,7 +301,7 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Add active state for object, and update only those who have active=true in the scene update method.
 - [x] Add name and tag properties into objects.
 - [x] Write a script file for playing sounds.
-- [ ] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
+- [x] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
 - [ ] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
 - [ ] Comment/document each method and function.
 - [ ] Write unit tests for all modules.

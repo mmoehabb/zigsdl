@@ -1,6 +1,7 @@
 const std = @import("std");
 const modules = @import("../modules/mod.zig");
 const types = @import("../types/mod.zig");
+const AudioPlayer = @import("../scripts/mod.zig").AudioPlayer;
 
 pub const Movement = struct {
     velocity: f32 = 5,
@@ -15,7 +16,10 @@ pub const Movement = struct {
     _last_pressed: types.event.Key = .Unknown,
 
     pub fn toScript(self: *Movement) modules.Script {
-        return modules.Script{ .strategy = &self._script_strategy };
+        return modules.Script{
+            .name = "Movement",
+            .strategy = &self._script_strategy,
+        };
     }
 
     fn start(_: *modules.Script, _: *modules.Object) void {}

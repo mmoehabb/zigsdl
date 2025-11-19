@@ -108,6 +108,21 @@ pub const Object = struct {
         try self._scripts.append(std.heap.page_allocator, script);
     }
 
+    pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
+        for (self._scripts.items) |script| {
+            if (std.mem.eql(u8, script.name, name)) {
+                return @as(
+                    *P,
+                    @constCast(@fieldParentPtr(
+                        "_script_strategy",
+                        script.strategy,
+                    )),
+                );
+            }
+        }
+        return null;
+    }
+
     pub fn setScene(self: *Object, scene: *Scene) void {
         self._scene = scene;
         for (self._children.items) |child| child.setScene(scene);

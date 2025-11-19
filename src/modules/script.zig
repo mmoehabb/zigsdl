@@ -7,6 +7,7 @@ pub const ScriptStrategy = struct {
 };
 
 pub const Script = struct {
+    name: []const u8,
     strategy: *ScriptStrategy,
 
     pub fn start(self: *Script, obj: *Object) void {
