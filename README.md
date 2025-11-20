@@ -49,18 +49,18 @@ First ensure to install SDL3 on your machine, and Zig of course. Choose any exam
 > Note: compatible only with zig versions ^0.15.0
 
   ```bash
-  zig build <example>
+  zig build example:<example-filename>
   ```
 
 For instance:
 
   ```bash
-  zig build moving_box_example
+  zig build example:moving-box
   ```
 
 ## Extend the Functionality
 
-I bet if you gave the code a look, you'd already know how to extend it and make a functional game with ZigSDL. Here's the moving_box_example zig file:
+I bet if you gave the code a look, you'd already know how to extend it and make a functional game with ZigSDL. Here's the moving-box zig file:
 
 ```zig
 const zigsdl = @import("zigsdl");
@@ -206,6 +206,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   ```bash
   vcpkg install sdl3
   vcpkg install sdl3_ttf
+  vcpkg install sdl3_image
   ```
 
 - **Manual Installation**:
@@ -221,6 +222,7 @@ This guide provides brief instructions for installing SDL3 on various operating 
   ```bash
   brew install sdl3
   brew install sdl3_ttf
+  brew install sdl3_image
   ```
 
 - **Manual Installation**:

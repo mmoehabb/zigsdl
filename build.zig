@@ -17,9 +17,9 @@ pub fn build(b: *std.Build) void {
 
     // Add the examples files as executables
     const exm1 = b.addExecutable(.{
-        .name = "moving_box_example",
+        .name = "example:moving-box",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("examples/moving_box_example.zig"),
+            .root_source_file = b.path("examples/moving-box.zig"),
             .target = target,
             .optimize = .Debug,
         }),
@@ -28,13 +28,13 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exm1);
 
     const exm1_run_cmd = b.addRunArtifact(exm1);
-    const exm1_run_step = b.step("moving_box_example", "Run moving_box_example");
+    const exm1_run_step = b.step("example:moving-box", "Run examples/moving-box.zig");
     exm1_run_step.dependOn(&exm1_run_cmd.step);
 
     const exm2 = b.addExecutable(.{
-        .name = "sprite_example",
+        .name = "example:explosion",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("examples/sprite_example.zig"),
+            .root_source_file = b.path("examples/explosion.zig"),
             .target = target,
             .optimize = .Debug,
         }),
@@ -43,13 +43,13 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exm2);
 
     const exm2_run_cmd = b.addRunArtifact(exm2);
-    const exm2_run_step = b.step("sprite_example", "Run sprite_example");
+    const exm2_run_step = b.step("example:explosion", "Run examples/explosion.zig");
     exm2_run_step.dependOn(&exm2_run_cmd.step);
 
     const exm3 = b.addExecutable(.{
-        .name = "hello_world_example",
+        .name = "example:hello-world",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("examples/hello_world_example.zig"),
+            .root_source_file = b.path("examples/hello-world.zig"),
             .target = target,
             .optimize = .Debug,
         }),
@@ -58,7 +58,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exm3);
 
     const exm3_run_cmd = b.addRunArtifact(exm3);
-    const exm3_run_step = b.step("hello_world_example", "Run hellow_world_example");
+    const exm3_run_step = b.step("example:hello-world", "Run examples/hello-world.zig");
     exm3_run_step.dependOn(&exm3_run_cmd.step);
 
     // Add test step

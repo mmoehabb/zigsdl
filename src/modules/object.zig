@@ -84,6 +84,11 @@ pub const Object = struct {
         if (self.lifecycle.postClose) |func| func(self);
     }
 
+    pub fn setDrawable(self: *Object, drawable: *Drawable) void {
+        if (self.drawable) |d| d.destroy();
+        self.drawable = drawable;
+    }
+
     pub fn getAbsPosition(self: *Object) types.common.Position {
         const parentPos = if (self._parent) |obj| obj.position else types.common.Position{};
         return self.position.add(parentPos);
@@ -138,7 +143,7 @@ pub const Object = struct {
         if (parent._scene) |s| self.setScene(s);
     }
 
-    fn detach(self: *Object) void {
+    pub fn detach(self: *Object) void {
         const oldparent = self._parent;
         self._parent = null;
         if (oldparent) |p| p.rmvChild(self);
