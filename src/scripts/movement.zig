@@ -27,7 +27,7 @@ pub const Movement = struct {
     fn update(s: *modules.Script, o: *modules.Object) void {
         const obj = o;
         const self = @as(*Movement, @constCast(@fieldParentPtr("_script_strategy", s.strategy)));
-        var em = o.*._scene.?.screen.?.em;
+        var em = o.*._scene.?.screen.?.getEventManager();
 
         if (self.smooth) {
             if (em.isKeyDown(.W)) obj.position.y -= self.velocity;

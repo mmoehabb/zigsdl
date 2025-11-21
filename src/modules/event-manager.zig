@@ -5,23 +5,29 @@ const Key = @import("../types/event.zig").Key;
 const KeyState = @import("../types/event.zig").KeyState;
 
 pub const EventManager = struct {
-    keys: std.AutoHashMap(Key, KeyState) = std.AutoHashMap(Key, KeyState).init(std.heap.page_allocator),
+    _keys: std.AutoHashMap(Key, KeyState),
+
+    pub fn init(allocator: std.mem.Allocator) EventManager {
+        return EventManager{
+            ._keys = std.AutoHashMap(Key, KeyState).init(allocator),
+        };
+    }
 
     pub fn deinit(self: *EventManager) void {
-        self.keys.deinit();
+        self._keys.deinit();
     }
 
     pub fn getKeys(self: *EventManager) std.AutoHashMap(Key, KeyState) {
-        return self.keys;
+        return self._keys;
     }
 
     pub fn isKeyDown(self: *EventManager, key: Key) bool {
-        const state = self.keys.get(key) orelse .Up;
+        const state = self._keys.get(key) orelse .Up;
         return state == .Down;
     }
 
     pub fn isKeyUp(self: *EventManager, key: Key) bool {
-        const state = self.keys.get(key) orelse .Down;
+        const state = self._keys.get(key) orelse .Down;
         return state == .Up;
     }
 
@@ -52,11 +58,11 @@ pub const EventManager = struct {
     }
 
     fn keyDown(self: *EventManager, key: Key) !void {
-        try self.keys.put(key, .Down);
+        try self._keys.put(key, .Down);
     }
 
     fn keyUp(self: *EventManager, key: Key) !void {
-        try self.keys.put(key, .Up);
+        try self._keys.put(key, .Up);
     }
 
     fn scancodeToKey(scancode: sdl.c.SDL_Scancode) Key {

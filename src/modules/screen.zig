@@ -10,29 +10,34 @@ pub const Screen = struct {
     width: c_int,
     height: c_int,
     rate: u32,
-    lifecycle: *const types.common.LifeCycle = &types.common.LifeCycle{
-        .preOpen = null,
-        .postOpen = null,
-        .preUpdate = null,
-        .postUpdate = null,
-        .preClose = null,
-        .postClose = null,
-    },
-    em: EventManager,
+    lifecycle: *const types.common.LifeCycle = &types.common.LifeCycle{},
 
-    var closed: bool = false;
-    var scene: ?*Scene = null;
-    var window: ?*sdl.c.SDL_Window = null;
-    var renderer: ?*sdl.c.SDL_Renderer = null;
+    _em: EventManager,
 
-    pub fn new(title: []const u8, width: c_int, height: c_int, rate: u32) Screen {
+    _scene: ?*Scene = null,
+    _window: ?*sdl.c.SDL_Window = null,
+    _renderer: ?*sdl.c.SDL_Renderer = null,
+    _opened: bool = false,
+
+    pub fn init(params: struct {
+        allocator: std.mem.Allocator,
+        title: []const u8,
+        width: c_int,
+        height: c_int,
+        rate: u32,
+    }) Screen {
         return Screen{
-            .title = title,
-            .width = width,
-            .height = height,
-            .rate = rate,
-            .em = EventManager{},
+            .title = params.title,
+            .width = params.width,
+            .height = params.height,
+            .rate = params.rate,
+            ._em = EventManager.init(params.allocator),
         };
+    }
+
+    pub fn deinit(self: *Screen) void {
+        if (!self._opened) return;
+        self.close() catch std.log.err("Screen: something went wrong while closing!", .{});
     }
 
     pub fn open(self: *Screen) !void {
@@ -52,34 +57,39 @@ pub const Screen = struct {
             return error.TTFInitializationFailed;
         }
 
-        window = sdl.c.SDL_CreateWindow(self.title.ptr, self.width, self.height, sdl.c.SDL_WINDOW_OPENGL) orelse {
+        self._window = sdl.c.SDL_CreateWindow(
+            self.title.ptr,
+            self.width,
+            self.height,
+            sdl.c.SDL_WINDOW_OPENGL,
+        ) orelse {
             sdl.c.SDL_Log("Unable to create window: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        renderer = sdl.c.SDL_CreateRenderer(window, null) orelse {
+        self._renderer = sdl.c.SDL_CreateRenderer(self._window, null) orelse {
             sdl.c.SDL_Log("Unable to create renderer: %s", sdl.c.SDL_GetError());
             return error.SDLInitializationFailed;
         };
 
-        if (scene) |s| try s.start();
+        if (self._scene) |s| try s.start();
 
         if (self.lifecycle.postOpen) |func| func(self);
 
-        closed = false;
-        while (!closed) try self.update();
+        self._opened = true;
+        while (self._opened) try self.update();
     }
 
     fn update(self: *Screen) !void {
         if (self.lifecycle.preUpdate) |func| func(self);
 
-        const event = try self.em.invokeEventLoop();
+        const event = try self._em.invokeEventLoop();
         if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
-        _ = sdl.c.SDL_RenderClear(renderer);
-        if (scene) |s| try s.update(renderer.?);
-        _ = sdl.c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        _ = sdl.c.SDL_RenderPresent(renderer);
+        _ = sdl.c.SDL_RenderClear(self._renderer);
+        if (self._scene) |s| try s.update(self._renderer.?);
+        _ = sdl.c.SDL_SetRenderDrawColor(self._renderer, 0, 0, 0, 255);
+        _ = sdl.c.SDL_RenderPresent(self._renderer);
 
         if (self.lifecycle.postUpdate) |func| func(self);
         sdl.c.SDL_Delay(self.rate);
@@ -88,23 +98,27 @@ pub const Screen = struct {
     pub fn close(self: *Screen) !void {
         if (self.lifecycle.preClose) |func| func(self);
 
-        _ = renderer orelse return error.ScreenNotInitialized;
-        _ = window orelse return error.ScreenNotInitialized;
+        _ = self._renderer orelse return error.ScreenNotInitialized;
+        _ = self._window orelse return error.ScreenNotInitialized;
 
-        if (scene) |s| try s.deinit();
-        self.em.deinit();
+        if (self._scene) |s| try s.deinit();
+        self._em.deinit();
 
-        closed = true;
+        self._opened = false;
         if (self.lifecycle.postClose) |func| func(self);
 
         sdl.c.TTF_Quit();
-        sdl.c.SDL_DestroyRenderer(renderer);
-        sdl.c.SDL_DestroyWindow(window);
+        sdl.c.SDL_DestroyRenderer(self._renderer);
+        sdl.c.SDL_DestroyWindow(self._window);
         sdl.c.SDL_Quit();
     }
 
     pub fn setScene(self: *Screen, newscene: *Scene) void {
-        scene = newscene;
-        scene.?.setScreen(self);
+        self._scene = newscene;
+        self._scene.?.setScreen(self);
+    }
+
+    pub fn getEventManager(self: *Screen) *EventManager {
+        return &self._em;
     }
 };

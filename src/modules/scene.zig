@@ -6,15 +6,20 @@ const Object = @import("./object.zig").Object;
 
 pub const Scene = struct {
     screen: ?*Screen,
+
+    _allocator: std.mem.Allocator,
     _objects: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 
-    pub fn new() Scene {
-        return Scene{ .screen = undefined };
+    pub fn init(allocator: std.mem.Allocator) Scene {
+        return Scene{
+            .screen = undefined,
+            ._allocator = allocator,
+        };
     }
 
     pub fn deinit(self: *Scene) !void {
         for (self._objects.items) |obj| try obj.deinit();
-        self._objects.deinit(std.heap.page_allocator);
+        self._objects.deinit(self._allocator);
     }
 
     pub fn start(self: *Scene) !void {
@@ -27,7 +32,7 @@ pub const Scene = struct {
 
     pub fn addObject(self: *Scene, obj: *Object) !void {
         obj.setScene(self);
-        try self._objects.append(std.heap.page_allocator, obj);
+        try self._objects.append(self._allocator, obj);
     }
 
     pub fn setScreen(self: *Scene, screen: *Screen) void {

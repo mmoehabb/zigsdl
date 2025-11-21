@@ -15,21 +15,16 @@ pub const Object = struct {
     active: bool,
     drawable: ?*Drawable,
 
+    lifecycle: types.common.LifeCycle = types.common.LifeCycle{},
+
+    _allocator: std.mem.Allocator,
     _scene: ?*Scene = null,
     _parent: ?*Object = null,
     _scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
     _children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 
-    lifecycle: types.common.LifeCycle = types.common.LifeCycle{
-        .preOpen = null,
-        .postOpen = null,
-        .preUpdate = null,
-        .postUpdate = null,
-        .preClose = null,
-        .postClose = null,
-    },
-
-    pub fn new(props: struct {
+    pub fn init(params: struct {
+        allocator: std.mem.Allocator,
         position: types.common.Position,
         rotation: types.common.Rotation,
         name: []const u8 = "unnamed",
@@ -38,13 +33,28 @@ pub const Object = struct {
         drawable: ?*Drawable = null,
     }) Object {
         return Object{
-            .position = props.position,
-            .rotation = props.rotation,
-            .name = props.name,
-            .tag = props.tag,
-            .active = props.active,
-            .drawable = props.drawable,
+            .position = params.position,
+            .rotation = params.rotation,
+            .name = params.name,
+            .tag = params.tag,
+            .active = params.active,
+            .drawable = params.drawable,
+            ._allocator = params.allocator,
         };
+    }
+
+    pub fn deinit(self: *Object) !void {
+        if (self.lifecycle.preClose) |func| func(self);
+
+        if (self.drawable) |d| d.destroy();
+
+        for (self._scripts.items) |script| script.end(self);
+        self._scripts.deinit(self._allocator);
+
+        for (self._children.items) |child| try child.deinit();
+        self._children.deinit(self._allocator);
+
+        if (self.lifecycle.postClose) |func| func(self);
     }
 
     pub fn start(self: *Object) !void {
@@ -68,20 +78,6 @@ pub const Object = struct {
         if (self.drawable) |d| try d.draw(renderer, pos, rot);
         for (self._children.items) |child| try child.update(renderer);
         if (self.lifecycle.postUpdate) |func| func(self);
-    }
-
-    pub fn deinit(self: *Object) !void {
-        if (self.lifecycle.preClose) |func| func(self);
-
-        if (self.drawable) |d| d.destroy();
-
-        for (self._scripts.items) |script| script.end(self);
-        self._scripts.deinit(std.heap.page_allocator);
-
-        for (self._children.items) |child| try child.deinit();
-        self._children.deinit(std.heap.page_allocator);
-
-        if (self.lifecycle.postClose) |func| func(self);
     }
 
     pub fn setDrawable(self: *Object, drawable: *Drawable) void {
@@ -110,7 +106,7 @@ pub const Object = struct {
     }
 
     pub fn addScript(self: *Object, script: *Script) !void {
-        try self._scripts.append(std.heap.page_allocator, script);
+        try self._scripts.append(self._allocator, script);
     }
 
     pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
@@ -150,7 +146,7 @@ pub const Object = struct {
     }
 
     pub fn addChild(self: *Object, child: *Object) !void {
-        try self._children.append(std.heap.page_allocator, child);
+        try self._children.append(self._allocator, child);
         child.attach(self);
     }
 

@@ -58,10 +58,10 @@ pub const Dimensions = struct {
 pub const Color = struct { r: u8 = 0, g: u8 = 0, b: u8 = 0, a: u8 = 255 };
 
 pub const LifeCycle = struct {
-    preOpen: ?*const fn (_: *anyopaque) void,
-    postOpen: ?*const fn (_: *anyopaque) void,
-    preUpdate: ?*const fn (_: *anyopaque) void,
-    postUpdate: ?*const fn (_: *anyopaque) void,
-    preClose: ?*const fn (_: *anyopaque) void,
-    postClose: ?*const fn (_: *anyopaque) void,
+    preOpen: ?*const fn (_: *anyopaque) void = null,
+    postOpen: ?*const fn (_: *anyopaque) void = null,
+    preUpdate: ?*const fn (_: *anyopaque) void = null,
+    postUpdate: ?*const fn (_: *anyopaque) void = null,
+    preClose: ?*const fn (_: *anyopaque) void = null,
+    postClose: ?*const fn (_: *anyopaque) void = null,
 };

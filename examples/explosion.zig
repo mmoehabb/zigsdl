@@ -1,6 +1,14 @@
 const zigsdl = @import("zigsdl");
+const std = @import("std");
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer {
+        const deinit_status = gpa.deinit();
+        if (deinit_status == .leak) std.debug.panic("Memory leak detected!", .{});
+    }
+
     // Create sprite object
     var idle = zigsdl.drawables.Sprite.new(.{
         .img_path = "./examples/assets/anim_explosion.png",
@@ -13,7 +21,8 @@ pub fn main() !void {
         .{},
     );
 
-    var obj = zigsdl.modules.Object.new(.{
+    var obj = zigsdl.modules.Object.init(.{
+        .allocator = allocator,
         .position = .{ .x = 100, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &idle_drawable,
@@ -27,7 +36,8 @@ pub fn main() !void {
     });
     var text_drawable = text.toDrawable();
 
-    var obj2 = zigsdl.modules.Object.new(.{
+    var obj2 = zigsdl.modules.Object.init(.{
+        .allocator = allocator,
         .position = .{ .x = 90, .y = 170, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
@@ -58,7 +68,7 @@ pub fn main() !void {
 
         fn func(self: *anyopaque) void {
             const o = @as(*zigsdl.modules.Object, @ptrCast(@alignCast(self)));
-            var em = o.*._scene.?.screen.?.em;
+            var em = o.*._scene.?.screen.?.getEventManager();
 
             if (em.isKeyDown(.Space) and !pressed) {
                 if (o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer")) |ap| ap.play();
@@ -69,17 +79,19 @@ pub fn main() !void {
     }.func;
 
     // Create a scene and add the obj into it
-    var scene = zigsdl.modules.Scene.new();
+    var scene = zigsdl.modules.Scene.init(allocator);
     try scene.addObject(&obj);
     try scene.addObject(&obj2);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.new(
-        "Simple Game",
-        320,
-        320,
-        1000 / 60,
-    );
+    var screen = zigsdl.modules.Screen.init(.{
+        .allocator = allocator,
+        .title = "Simple Game",
+        .width = 320,
+        .height = 320,
+        .rate = 1000 / 60,
+    });
+    defer screen.deinit();
     screen.setScene(&scene);
     try screen.open();
 }
