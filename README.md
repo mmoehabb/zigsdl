@@ -81,8 +81,7 @@ pub fn main() !void {
     );
     var rect_drawable = rect.toDrawable();
 
-    var obj = zigsdl.modules.Object.init(.{
-        .allocator = allocator,
+    var obj = zigsdl.modules.Object.init(allocator, .{
         .name = "GreenBox",
         .position = .{ .x = 20, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
@@ -100,8 +99,7 @@ pub fn main() !void {
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(.{
-        .allocator = allocator,
+    var screen = zigsdl.modules.Screen.init(allocator, .{
         .title = "Simple Game",
         .width = 320,
         .height = 320,
@@ -329,10 +327,23 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
 - [x] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
 - [x] Comment/document each method and function.
-- [ ] Write unit tests for all modules.
 
 ### Version 0.2.0
 
+#### Features
 - [ ] Make scenes behave like cameras; they can zoom in and out, and even move in the four directions.
 - ...
 
+#### Drawables
+- [ ] Implement a drawable for each common geometric shape.
+- [ ] Implement _Button_ drawable.
+- ...
+
+#### Scripts
+- [ ] Implement _Rigidbody_ script; it should, at minimum, specify the mass of the object, detect collisions, and apply gravity.
+- [ ] Implement _Collision_ script; any two objects with this script, and one of them is a rigid-body, they shall not overlap.
+- ...
+
+#### Examples
+- [ ] Develop a [Pong game](https://www.ponggame.org/).
+- ...
