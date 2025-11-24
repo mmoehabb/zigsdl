@@ -40,15 +40,17 @@ _scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
 _children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
 _active: bool,
 
-pub fn init(params: struct {
+pub fn init(
     allocator: std.mem.Allocator,
-    position: types.Position,
-    rotation: types.Rotation,
-    name: []const u8 = "unnamed",
-    tag: []const u8 = "untagged",
-    active: bool = true,
-    drawable: ?*Drawable = null,
-}) Object {
+    params: struct {
+        position: types.Position = types.Position{},
+        rotation: types.Rotation = types.Rotation{},
+        name: []const u8 = "unnamed",
+        tag: []const u8 = "untagged",
+        active: bool = true,
+        drawable: ?*Drawable = null,
+    },
+) Object {
     return Object{
         .position = params.position,
         .rotation = params.rotation,
@@ -56,7 +58,7 @@ pub fn init(params: struct {
         .tag = params.tag,
         .drawable = params.drawable,
         ._active = params.active,
-        ._allocator = params.allocator,
+        ._allocator = allocator,
     };
 }
 
@@ -172,6 +174,25 @@ pub fn detach(self: *Object) void {
     if (oldparent) |p| p.rmvChild(self);
 }
 
+test "should detach the object from its parent; from both ways" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var parent = Object.init(allocator, .{});
+    defer parent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try parent.addChild(&child);
+    try expect(child._parent == &parent);
+    try expect(parent.getChildByName("child") == &child);
+
+    child.detach();
+    try expect(child._parent == null);
+    try expect(parent.getChildByName("child") == null);
+}
+
 /// Note: this also attaches the parent to the child, after detaching
 /// the child from the old parent.
 pub fn addChild(self: *Object, child: *Object) !void {
@@ -181,18 +202,60 @@ pub fn addChild(self: *Object, child: *Object) !void {
     if (self._scene) |s| child.setScene(s);
 }
 
+test "should detach the child from its parent before adding it to the new one" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var oldparent = Object.init(allocator, .{});
+    defer oldparent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try oldparent.addChild(&child);
+    try expect(child._parent == &oldparent);
+    try expect(oldparent.getChildByName("child") == &child);
+
+    var newparent = Object.init(allocator, .{});
+    defer newparent.deinit();
+
+    try newparent.addChild(&child);
+    try expect(child._parent == &newparent);
+    try expect(newparent.getChildByName("child") == &child);
+    try expect(oldparent.getChildByName("child") == null);
+}
+
 pub fn rmvChild(self: *Object, child: *Object) void {
-    var index: ?usize = undefined;
+    var index: isize = -1;
     for (self._children.items, 0..) |obj, i| {
         if (obj == child) {
-            index = i;
+            index = @intCast(i);
             break;
         }
     }
-    if (index) |i| {
-        const c = self._children.orderedRemove(i);
+    if (index >= 0) {
+        const c = self._children.orderedRemove(@intCast(index));
         c.detach();
     }
+}
+
+test "should detach the child from its parent after being removed" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var parent = Object.init(allocator, .{});
+    defer parent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try parent.addChild(&child);
+    try expect(child._parent == &parent);
+    try expect(parent.getChildByName("child") == &child);
+
+    parent.rmvChild(&child);
+    try expect(child._parent == null);
+    try expect(parent.getChildByName("child") == null);
 }
 
 /// Deep search the whole children tree for an object with the specific passed name.
@@ -210,27 +273,38 @@ pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     return null;
 }
 
-/// Deep seach the whole children tree and return a slice of the ones that have the passed tag.
+/// Deep seach the whole children tree and return an array of the ones that have the passed tag.
 ///
 /// :param tag: the object tag to be searched for.
 /// :param max: the maximum number of objects to search for.
-pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) []?*Object {
+pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) struct {
+    arr: [max]?*Object,
+    size: u8,
+} {
     var res: [max]?*Object = .{null} ** max;
 
     var i: u8 = 0;
     for (self._children.items) |c1| {
         if (i >= max) break;
-        if (std.mem.eql(u8, c1.tag, tag)) res[i] = c1;
-        i = i + 1;
+        if (std.mem.eql(u8, c1.tag, tag)) {
+            res[i] = c1;
+            i = i + 1;
+        }
 
         const inner_childs = c1.getChildsByTag(tag, max);
-        for (inner_childs) |c2| {
+        for (inner_childs.arr[0..inner_childs.size]) |c2| {
             if (i >= max) break;
-            if (c2) |_| {} else break;
-            if (std.mem.eql(u8, c2.?.tag, tag)) res[i] = c2;
-            i = i + 1;
+            if (c2) |c| {
+                if (std.mem.eql(u8, c.tag, tag)) {
+                    res[i] = c2;
+                    i = i + 1;
+                }
+            }
         }
     }
 
-    return res[0..i];
+    return .{
+        .arr = res,
+        .size = i,
+    };
 }

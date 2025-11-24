@@ -61,27 +61,97 @@ pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
     return null;
 }
 
-/// Deep seach the whole objects tree and return a slice of the ones that have the passed tag.
+/// Deep seach the whole objects tree and return an array of the ones that have the passed tag.
 ///
 /// :param tag: the object tag to be searched for.
 /// :param max: the maximum number of objects to search for.
-pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) []?*Object {
+pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
+    arr: [max]?*Object,
+    size: u8,
+} {
     var res: [max]?*Object = .{null} ** max;
 
     var i: u8 = 0;
     for (self._objects.items) |o1| {
         if (i >= max) break;
-        if (std.mem.eql(u8, o1.tag, tag)) res[i] = o1;
-        i = i + 1;
+        if (std.mem.eql(u8, o1.tag, tag)) {
+            res[i] = o1;
+            i = i + 1;
+        }
 
         const inner_childs = o1.getChildsByTag(tag, max);
-        for (inner_childs) |o2| {
+        for (inner_childs.arr[0..inner_childs.size]) |o2| {
             if (i >= max) break;
-            if (o2) |_| {} else break;
-            if (std.mem.eql(u8, o2.?.tag, tag)) res[i] = o2;
-            i = i + 1;
+            if (o2) |o| {
+                if (std.mem.eql(u8, o.tag, tag)) {
+                    res[i] = o2;
+                    i = i + 1;
+                }
+            }
         }
     }
 
-    return res[0..i];
+    return .{
+        .arr = res,
+        .size = i,
+    };
+}
+
+test "Retrieve a certain object from the scene by its name" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var obj1 = Object.init(allocator, .{ .name = "Parent" });
+    defer obj1.deinit();
+
+    var obj2 = Object.init(allocator, .{ .name = "Child 1" });
+    defer obj2.deinit();
+
+    var obj3 = Object.init(allocator, .{ .name = "Child 2" });
+    defer obj3.deinit();
+
+    try obj1.addChild(&obj2);
+    try obj1.addChild(&obj3);
+
+    var scene = Scene.init(allocator);
+    defer scene.deinit();
+    try scene.addObject(&obj1);
+
+    try expect(scene.getObjectByName("Child 2").? == &obj3);
+}
+
+test "Retrieve a slice of objects from the scene by their tag" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var obj1 = Object.init(allocator, .{});
+    defer obj1.deinit();
+
+    var obj2 = Object.init(allocator, .{
+        .name = "First Wall",
+        .tag = "wall",
+    });
+    defer obj2.deinit();
+
+    var obj3 = Object.init(allocator, .{});
+    defer obj3.deinit();
+
+    var obj4 = Object.init(allocator, .{
+        .name = "Second Wall",
+        .tag = "wall",
+    });
+    defer obj4.deinit();
+
+    try obj1.addChild(&obj2);
+    try obj1.addChild(&obj3);
+    try obj3.addChild(&obj4);
+
+    var scene = Scene.init(allocator);
+    defer scene.deinit();
+    try scene.addObject(&obj1);
+
+    const walls = scene.getObjectsByTag("wall", 5);
+    try expect(walls.size == 2);
+    try expect(walls.arr[0] == &obj2);
+    try expect(walls.arr[1] == &obj4);
 }

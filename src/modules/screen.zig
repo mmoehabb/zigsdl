@@ -31,19 +31,21 @@ _window: ?*sdl.c.SDL_Window = null,
 _renderer: ?*sdl.c.SDL_Renderer = null,
 _opened: bool = false,
 
-pub fn init(params: struct {
+pub fn init(
     allocator: std.mem.Allocator,
-    title: []const u8,
-    width: c_int,
-    height: c_int,
-    rate: u32,
-}) Screen {
+    params: struct {
+        title: []const u8,
+        width: c_int,
+        height: c_int,
+        rate: u32,
+    },
+) Screen {
     return Screen{
         .title = params.title,
         .width = params.width,
         .height = params.height,
         .rate = params.rate,
-        ._em = EventManager.init(params.allocator),
+        ._em = EventManager.init(allocator),
     };
 }
 

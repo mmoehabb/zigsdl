@@ -21,8 +21,7 @@ pub fn main() !void {
         .{},
     );
 
-    var obj = zigsdl.modules.Object.init(.{
-        .allocator = allocator,
+    var obj = zigsdl.modules.Object.init(allocator, .{
         .position = .{ .x = 100, .y = 20, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &idle_drawable,
@@ -37,8 +36,7 @@ pub fn main() !void {
     });
     var text_drawable = text.toDrawable();
 
-    var obj2 = zigsdl.modules.Object.init(.{
-        .allocator = allocator,
+    var obj2 = zigsdl.modules.Object.init(allocator, .{
         .position = .{ .x = 90, .y = 170, .z = 1 },
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
@@ -86,8 +84,7 @@ pub fn main() !void {
     try scene.addObject(&obj2);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(.{
-        .allocator = allocator,
+    var screen = zigsdl.modules.Screen.init(allocator, .{
         .title = "Simple Game",
         .width = 320,
         .height = 320,

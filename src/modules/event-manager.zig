@@ -32,7 +32,7 @@ pub fn isKeyDown(self: *EventManager, key: Key) bool {
 }
 
 pub fn isKeyUp(self: *EventManager, key: Key) bool {
-    const state = self._keys.get(key) orelse .Down;
+    const state = self._keys.get(key) orelse .Up;
     return state == .Up;
 }
 
@@ -309,4 +309,38 @@ fn mouseCodeToEnum(scancode: sdl.c.SDL_Scancode) Key {
         sdl.c.SDL_BUTTON_X2 => .X2Mouse,
         else => .LeftMouse, // NOTE: any unknown mouse click event considered as a left click
     };
+}
+
+test "Putting new key state in the map" {
+    const expect = std.testing.expect;
+    var em = EventManager.init(std.testing.allocator);
+    defer em.deinit();
+
+    try em.keyDown(Key.A);
+    try expect(em.getKeys().get(Key.A) == .Down);
+}
+
+test "Updating a key state in the map" {
+    const expect = std.testing.expect;
+    var em = EventManager.init(std.testing.allocator);
+    defer em.deinit();
+
+    try em.keyDown(Key.D);
+    try expect(em.getKeys().get(Key.D) == .Down);
+
+    try em.keyUp(Key.D);
+    try expect(em.getKeys().get(Key.D) == .Up);
+}
+
+test "Default key state should be Up" {
+    const expect = std.testing.expect;
+    var em = EventManager.init(std.testing.allocator);
+    defer em.deinit();
+
+    try expect(em.isKeyUp(Key.S) == true);
+    try expect(em.isKeyDown(Key.S) == false);
+
+    try em.keyDown(Key.S);
+    try expect(em.isKeyUp(Key.S) == false);
+    try expect(em.isKeyDown(Key.S) == true);
 }
