@@ -26,6 +26,7 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
     });
+    defer obj.deinit();
 
     // Center the drawable object in the screen
     obj.lifecycle.postUpdate = struct {
@@ -39,6 +40,7 @@ pub fn main() !void {
 
     // Create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.init(allocator);
+    defer scene.deinit();
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it

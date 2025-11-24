@@ -27,6 +27,7 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &idle_drawable,
     });
+    defer obj.deinit();
 
     // Create text object
     var text = zigsdl.drawables.Text.new(.{
@@ -80,6 +81,7 @@ pub fn main() !void {
 
     // Create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.init(allocator);
+    defer scene.deinit();
     try scene.addObject(&obj);
     try scene.addObject(&obj2);
 

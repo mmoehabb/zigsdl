@@ -23,6 +23,7 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect_drawable,
     });
+    defer obj.deinit();
 
     // Add movement script to the object
     var movement = zigsdl.scripts.Movement{ .velocity = 5, .smooth = true };
@@ -41,10 +42,12 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect2_drawable,
     });
+    defer obj2.deinit();
     try obj.addChild(&obj2);
 
     // Create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.init(allocator);
+    defer scene.deinit();
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it

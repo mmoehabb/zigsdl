@@ -64,6 +64,7 @@ I bet if you gave the code a look, you'd already know how to extend it and make 
 
 ```zig
 const zigsdl = @import("zigsdl");
+const std = @import("std");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -87,6 +88,7 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &rect_drawable,
     });
+    defer obj.deinit();
 
     // Add movement script to the object
     var movement = zigsdl.scripts.Movement{ .velocity = 5, .smooth = true };
@@ -94,6 +96,7 @@ pub fn main() !void {
 
     // Create a scene and add the obj into it
     var scene = zigsdl.modules.Scene.init(allocator);
+    defer scene.deinit();
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it
@@ -325,6 +328,11 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Write a script file for playing sounds.
 - [x] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
 - [x] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
-- [ ] Comment/document each method and function.
+- [x] Comment/document each method and function.
 - [ ] Write unit tests for all modules.
+
+### Version 0.2.0
+
+- [ ] Make scenes behave like cameras; they can zoom in and out, and even move in the four directions.
+- ...
 

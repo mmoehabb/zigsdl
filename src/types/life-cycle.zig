@@ -1,0 +1,6 @@
+preOpen: ?*const fn (_: *anyopaque) void = null,
+postOpen: ?*const fn (_: *anyopaque) void = null,
+preUpdate: ?*const fn (_: *anyopaque) void = null,
+postUpdate: ?*const fn (_: *anyopaque) void = null,
+preClose: ?*const fn (_: *anyopaque) void = null,
+postClose: ?*const fn (_: *anyopaque) void = null,

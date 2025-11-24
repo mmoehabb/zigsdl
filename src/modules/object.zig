@@ -1,200 +1,236 @@
+//! This is the main component; without it drawables and scripts have no use,
+//! and screens and scenes will be empty.
+//!
+//! An Object can be considered as a collection of scripts, a collection of objects,
+//! a container of a drawable, or all the three together.
+
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 const types = @import("../types/mod.zig");
 
-const Scene = @import("./scene.zig").Scene;
-const Drawable = @import("./drawable.zig").Drawable;
+const Scene = @import("./scene.zig");
 const Script = @import("./script.zig").Script;
+const Drawable = @import("./drawable.zig").Drawable;
 
-pub const Object = struct {
-    position: types.common.Position,
-    rotation: types.common.Rotation,
+const Object = @This();
 
-    name: []const u8,
-    tag: []const u8,
-    active: bool,
-    drawable: ?*Drawable,
+/// The position of the object relative to its parent.
+position: types.Position,
 
-    lifecycle: types.common.LifeCycle = types.common.LifeCycle{},
+/// The rotation of the object relative to its parent.
+rotation: types.Rotation,
 
-    _allocator: std.mem.Allocator,
-    _scene: ?*Scene = null,
-    _parent: ?*Object = null,
-    _scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
-    _children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
+/// Unique name for the object, by which it can be retrieved from the parent.
+name: []const u8,
 
-    pub fn init(params: struct {
-        allocator: std.mem.Allocator,
-        position: types.common.Position,
-        rotation: types.common.Rotation,
-        name: []const u8 = "unnamed",
-        tag: []const u8 = "untagged",
-        active: bool = true,
-        drawable: ?*Drawable = null,
-    }) Object {
-        return Object{
-            .position = params.position,
-            .rotation = params.rotation,
-            .name = params.name,
-            .tag = params.tag,
-            .active = params.active,
-            .drawable = params.drawable,
-            ._allocator = params.allocator,
-        };
-    }
+/// The object tag. So that different kinds of objects can be classified.
+/// For example: wall, static, ground, player, etc.
+tag: []const u8,
 
-    pub fn deinit(self: *Object) !void {
-        if (self.lifecycle.preClose) |func| func(self);
+/// A drawable, associated to a [concrete drawable](#root.drawables), that will get renderer.
+drawable: ?*Drawable,
 
-        if (self.drawable) |d| d.destroy();
+/// The object [lifecycle](#root.types.lifecycle).
+lifecycle: types.LifeCycle = types.LifeCycle{},
 
-        for (self._scripts.items) |script| script.end(self);
-        self._scripts.deinit(self._allocator);
+_allocator: std.mem.Allocator,
+_scene: ?*Scene = null,
+_parent: ?*Object = null,
+_scripts: std.ArrayList(*Script) = std.ArrayList(*Script).empty,
+_children: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
+_active: bool,
 
-        for (self._children.items) |child| try child.deinit();
-        self._children.deinit(self._allocator);
+pub fn init(params: struct {
+    allocator: std.mem.Allocator,
+    position: types.Position,
+    rotation: types.Rotation,
+    name: []const u8 = "unnamed",
+    tag: []const u8 = "untagged",
+    active: bool = true,
+    drawable: ?*Drawable = null,
+}) Object {
+    return Object{
+        .position = params.position,
+        .rotation = params.rotation,
+        .name = params.name,
+        .tag = params.tag,
+        .drawable = params.drawable,
+        ._active = params.active,
+        ._allocator = params.allocator,
+    };
+}
 
-        if (self.lifecycle.postClose) |func| func(self);
-    }
+pub fn deinit(self: *Object) void {
+    if (self.lifecycle.preClose) |func| func(self);
 
-    pub fn start(self: *Object) !void {
-        if (!self.active) return;
-        if (self.lifecycle.preOpen) |func| func(self);
+    if (self.drawable) |d| d.destroy();
 
-        for (self._scripts.items) |script| script.start(self);
-        for (self._children.items) |child| try child.start();
+    for (self._scripts.items) |script| script.end(self);
+    self._scripts.deinit(self._allocator);
 
-        if (self.lifecycle.postOpen) |func| func(self);
-    }
+    self._children.deinit(self._allocator);
 
-    pub fn update(self: *Object, renderer: *sdl.c.SDL_Renderer) !void {
-        if (!self.active) return;
-        if (self.lifecycle.preUpdate) |func| func(self);
-        for (self._scripts.items) |script| script.update(self);
+    if (self.lifecycle.postClose) |func| func(self);
+}
 
-        const pos = if (self._parent) |p| self.position.add(p.position) else self.position;
-        const rot = if (self._parent) |p| self.rotation.add(p.rotation) else self.rotation;
+/// This method shall only be invoked via the scene.
+pub fn start(self: *Object) !void {
+    if (!self._active) return;
+    if (self.lifecycle.preOpen) |func| func(self);
 
-        if (self.drawable) |d| try d.draw(renderer, pos, rot);
-        for (self._children.items) |child| try child.update(renderer);
-        if (self.lifecycle.postUpdate) |func| func(self);
-    }
+    for (self._scripts.items) |script| script.start(self);
+    for (self._children.items) |child| try child.start();
 
-    pub fn setDrawable(self: *Object, drawable: *Drawable) void {
-        if (self.drawable) |d| d.destroy();
-        self.drawable = drawable;
-    }
+    if (self.lifecycle.postOpen) |func| func(self);
+}
 
-    pub fn getAbsPosition(self: *Object) types.common.Position {
-        const parentPos = if (self._parent) |obj| obj.position else types.common.Position{};
-        return self.position.add(parentPos);
-    }
+/// This method shall only be invoked via the scene.
+pub fn update(self: *Object, renderer: *sdl.c.SDL_Renderer) !void {
+    if (!self._active) return;
+    if (self.lifecycle.preUpdate) |func| func(self);
+    for (self._scripts.items) |script| script.update(self);
 
-    pub fn setAbsPosition(self: *Object, pos: types.common.Position) void {
-        const parentPos = if (self._parent) |obj| obj.position else types.common.Position{};
-        self.position = pos.subtract(parentPos);
-    }
+    const pos = if (self._parent) |p| self.position.add(p.position) else self.position;
+    const rot = if (self._parent) |p| self.rotation.add(p.rotation) else self.rotation;
 
-    pub fn getAbsRotation(self: *Object) types.common.Rotation {
-        const parentRot = if (self._parent) |obj| obj.rotation else types.common.Rotation{};
-        return self.rotation.add(parentRot);
-    }
+    if (self.drawable) |d| try d.draw(renderer, pos, rot);
+    for (self._children.items) |child| try child.update(renderer);
+    if (self.lifecycle.postUpdate) |func| func(self);
+}
 
-    pub fn setAbsRotation(self: *Object, rot: types.common.Rotation) void {
-        const parentRot = if (self._parent) |obj| obj.rotation else types.common.Rotation{};
-        self.rotation = rot.subtract(parentRot);
-    }
+/// Note: Only activated objects are rendered in the scene, and their scripts are invoked.
+pub fn activate(self: *Object) void {
+    self._active = true;
+    self.start();
+}
 
-    pub fn addScript(self: *Object, script: *Script) !void {
-        try self._scripts.append(self._allocator, script);
-    }
+/// Note: Only activated objects are rendered in the scene, and their scripts are invoked.
+pub fn deactivate(self: *Object) void {
+    self._active = false;
+    for (self._scripts.items) |script| script.end(self);
+}
 
-    pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
-        for (self._scripts.items) |script| {
-            if (std.mem.eql(u8, script.name, name)) {
-                return @as(
-                    *P,
-                    @constCast(@fieldParentPtr(
-                        "_script_strategy",
-                        script.strategy,
-                    )),
-                );
-            }
-        }
-        return null;
-    }
+pub fn setDrawable(self: *Object, drawable: *Drawable) void {
+    if (self.drawable) |d| d.destroy();
+    self.drawable = drawable;
+}
 
-    pub fn setScene(self: *Object, scene: *Scene) void {
-        self._scene = scene;
-        for (self._children.items) |child| child.setScene(scene);
-    }
+pub fn getAbsPosition(self: *Object) types.Position {
+    const parentPos = if (self._parent) |obj| obj.position else types.Position{};
+    return self.position.add(parentPos);
+}
 
-    pub fn getChildByIndex(self: *Object, index: usize) *Object {
-        return self._children.items[index];
-    }
+pub fn setAbsPosition(self: *Object, pos: types.Position) void {
+    const parentPos = if (self._parent) |obj| obj.position else types.Position{};
+    self.position = pos.subtract(parentPos);
+}
 
-    pub fn attach(self: *Object, parent: *Object) void {
-        if (self._parent) |_| self.detach();
-        self._parent = parent;
-        if (parent._scene) |s| self.setScene(s);
-    }
+pub fn getAbsRotation(self: *Object) types.Rotation {
+    const parentRot = if (self._parent) |obj| obj.rotation else types.Rotation{};
+    return self.rotation.add(parentRot);
+}
 
-    pub fn detach(self: *Object) void {
-        const oldparent = self._parent;
-        self._parent = null;
-        if (oldparent) |p| p.rmvChild(self);
-    }
+pub fn setAbsRotation(self: *Object, rot: types.Rotation) void {
+    const parentRot = if (self._parent) |obj| obj.rotation else types.Rotation{};
+    self.rotation = rot.subtract(parentRot);
+}
 
-    pub fn addChild(self: *Object, child: *Object) !void {
-        try self._children.append(self._allocator, child);
-        child.attach(self);
-    }
+pub fn addScript(self: *Object, script: *Script) !void {
+    try self._scripts.append(self._allocator, script);
+}
 
-    pub fn rmvChild(self: *Object, child: *Object) void {
-        var index: ?usize = undefined;
-        for (self._children.items, 0..) |obj, i| {
-            if (obj == child) {
-                index = i;
-                break;
-            }
-        }
-        if (index) |i| {
-            const c = self._children.orderedRemove(i);
-            c.detach();
+/// By convention, the name of any script equals exactly the name of the type.
+/// See [root.modules.script.name](#root.modules.script.name).
+pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
+    for (self._scripts.items) |script| {
+        if (std.mem.eql(u8, script.name, name)) {
+            return @as(
+                *P,
+                @constCast(@fieldParentPtr(
+                    "_script_strategy",
+                    script.strategy,
+                )),
+            );
         }
     }
+    return null;
+}
 
-    pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
-        for (self._children.items) |child| {
-            if (std.mem.eql(u8, child.name, name)) return child;
+pub fn setScene(self: *Object, scene: *Scene) void {
+    self._scene = scene;
+    for (self._children.items) |child| child.setScene(scene);
+}
+
+pub fn getChildByIndex(self: *Object, index: usize) *Object {
+    return self._children.items[index];
+}
+
+/// Note: this also removes the child from the parent.
+pub fn detach(self: *Object) void {
+    const oldparent = self._parent;
+    self._parent = null;
+    if (oldparent) |p| p.rmvChild(self);
+}
+
+/// Note: this also attaches the parent to the child, after detaching
+/// the child from the old parent.
+pub fn addChild(self: *Object, child: *Object) !void {
+    try self._children.append(self._allocator, child);
+    if (child._parent) |_| child.detach();
+    child._parent = self;
+    if (self._scene) |s| child.setScene(s);
+}
+
+pub fn rmvChild(self: *Object, child: *Object) void {
+    var index: ?usize = undefined;
+    for (self._children.items, 0..) |obj, i| {
+        if (obj == child) {
+            index = i;
+            break;
         }
+    }
+    if (index) |i| {
+        const c = self._children.orderedRemove(i);
+        c.detach();
+    }
+}
 
-        for (self._children.items) |child| {
-            const found = child.getChildByName(name);
-            if (found) |c| return c;
-        }
-
-        return null;
+/// Deep search the whole children tree for an object with the specific passed name.
+/// Note: it returns only the first one it founds.
+pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
+    for (self._children.items) |child| {
+        if (std.mem.eql(u8, child.name, name)) return child;
     }
 
-    pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) []?*Object {
-        var res: [max]?*Object = .{null} ** max;
+    for (self._children.items) |child| {
+        const found = child.getChildByName(name);
+        if (found) |c| return c;
+    }
 
-        var i: u8 = 0;
-        for (self._children.items) |c1| {
+    return null;
+}
+
+/// Deep seach the whole children tree and return a slice of the ones that have the passed tag.
+///
+/// :param tag: the object tag to be searched for.
+/// :param max: the maximum number of objects to search for.
+pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) []?*Object {
+    var res: [max]?*Object = .{null} ** max;
+
+    var i: u8 = 0;
+    for (self._children.items) |c1| {
+        if (i >= max) break;
+        if (std.mem.eql(u8, c1.tag, tag)) res[i] = c1;
+        i = i + 1;
+
+        const inner_childs = c1.getChildsByTag(tag, max);
+        for (inner_childs) |c2| {
             if (i >= max) break;
-            if (std.mem.eql(u8, c1.tag, tag)) res[i] = c1;
+            if (c2) |_| {} else break;
+            if (std.mem.eql(u8, c2.?.tag, tag)) res[i] = c2;
             i = i + 1;
-
-            const inner_childs = c1.getChildsByTag(tag, max);
-            for (inner_childs) |c2| {
-                if (i >= max) break;
-                if (c2) |_| {} else break;
-                if (std.mem.eql(u8, c2.?.tag, tag)) res[i] = c2;
-                i = i + 1;
-            }
         }
-
-        return res[0..i];
     }
-};
+
+    return res[0..i];
+}
