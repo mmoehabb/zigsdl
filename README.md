@@ -1,7 +1,7 @@
 ![cova_icon_v2 1](./splash.png)
 
 [![Static Badge](https://img.shields.io/badge/v0.15.1(stable)-orange?logo=Zig&logoColor=Orange&label=Zig&labelColor=Orange)](https://ziglang.org/download/)
-[![Static Badge](https://img.shields.io/badge/v0.0.1-blue?logo=GitHub&label=Release)](https://github.com/mmoehabb/zigsdl/releases/tag/v0.0.1)
+[![Static Badge](https://img.shields.io/badge/v0.0.1-blue?logo=GitHub&label=Release)](https://github.com/mmoehabb/zigsdl/releases/tag/0.1.0)
 [![Static Badge](https://img.shields.io/badge/MIT-silver?label=License)](https://github.com/mmoehabb/zigsdl/blob/main/LICENSE)
 
 ## About
@@ -304,29 +304,6 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 
 
 ## TODOs
-
-### Version 0.0.1
-- [x] Layout the main architecture and project directory structure.
-- [x] Write the basic implementation, with SDL, of few components that the package serves.
-- [x] Write few examples that uses the package in producing some "reactive visuals".
-
-### Version 0.1.0
-
-- [x] Write a comprehensive set of keys in the event-manager component.
-- [x] Implement parent-child relationship in objects.
-- [x] Add Sprite drawable to the pre-defined drawables.
-- [x] Add Text drawable to the pre-defined drawables.
-- [x] Make the object functionality extendable by integrating the LifeCycle within.
-- [x] Refactor the event-manager; it shall no longer store callbacks, it shall only mutate a global key status state.
-- [x] Use rotations in draw logic of the current pre-defined drawables.
-- [x] Differentiate between absolute and relative positions and rotations.
-- [x] Use SDL_Image lib in _sprite_ pre-defined drawable.
-- [x] Add active state for object, and update only those who have active=true in the scene update method.
-- [x] Add name and tag properties into objects.
-- [x] Write a script file for playing sounds.
-- [x] Make scripts of any arbitrary object accessible via foreign objects; objects can call methods attached to other objects.
-- [x] Make the code more compliant to Zig philosophy; by passing allocators in parameters.
-- [x] Comment/document each method and function.
 
 ### Version 0.2.0
 
