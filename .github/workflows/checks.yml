@@ -1,0 +1,23 @@
+on: [push, pull_request]
+name: checks
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SDL3
+        uses: libsdl-org/setup-sdl@v1
+        with:
+          version: "3-latest"
+          version-sdl-image: "3-latest"
+          version-sdl-ttf: "3-latest"
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Run unit tests
+        run: zig build test --summary all
