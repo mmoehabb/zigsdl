@@ -16,7 +16,7 @@ jobs:
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev \
-          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev libharfbuzz-dev
 
       - name: Setup SDL3
         run: |
@@ -24,6 +24,26 @@ jobs:
           tar -xf SDL3-3.2.26.tar.gz
           mkdir ./SDL3-3.2.26/build
           cd ./SDL3-3.2.26/build
+          cmake ..
+          cmake --build . --parallel $(nproc)
+          sudo cmake --install .
+
+      - name: Setup SDL3_ttf
+        run: |
+          wget https://github.com/libsdl-org/SDL_ttf/releases/download/release-3.2.2/SDL3_ttf-3.2.2.tar.gz
+          tar -xf SDL3_ttf-3.2.2.tar.gz
+          mkdir ./SDL3_ttf-3.2.2/build
+          cd ./SDL3_ttf-3.2.2/build
+          cmake ..
+          cmake --build . --parallel $(nproc)
+          sudo cmake --install .
+
+      - name: Setup SDL3_image
+        run: |
+          wget https://github.com/libsdl-org/SDL_image/releases/download/release-3.2.4/SDL3_image-3.2.4.tar.gz
+          tar -xf SDL3_image-3.2.4.tar.gz
+          mkdir ./SDL3_image-3.2.4/build
+          cd ./SDL3_image-3.2.4/build
           cmake ..
           cmake --build . --parallel $(nproc)
           sudo cmake --install .
