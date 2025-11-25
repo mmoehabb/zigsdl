@@ -265,15 +265,38 @@ This guide provides brief instructions for installing SDL3 on various operating 
 
 - **Manual Installation**:
 
-  - Download the SDL3 source from [libsdl.org](https://www.libsdl.org).
-
-  - Build and install:
-
+  1. Install SDL3
     ```bash
-    ./configure
-    make
-    sudo make install
-    ```
+    wget https://github.com/libsdl-org/SDL/releases/download/release-3.2.26/SDL3-3.2.26.tar.gz
+    tar -xf SDL3-3.2.26.tar.gz
+    mkdir ./SDL3-3.2.26/build
+    cd ./SDL3-3.2.26/build
+    cmake ..
+    cmake --build . --parallel $(nproc)
+    sudo cmake --install .
+  ```
+
+  2. Install SDL3_ttf
+    ```bash
+    wget https://github.com/libsdl-org/SDL_ttf/releases/download/release-3.2.2/SDL3_ttf-3.2.2.tar.gz
+    tar -xf SDL3_ttf-3.2.2.tar.gz
+    mkdir ./SDL3_ttf-3.2.2/build
+    cd ./SDL3_ttf-3.2.2/build
+    cmake ..
+    cmake --build . --parallel $(nproc)
+    sudo cmake --install .
+  ```
+
+  3. Install SDL3_image
+    ```bash
+    wget https://github.com/libsdl-org/SDL_image/releases/download/release-3.2.4/SDL3_image-3.2.4.tar.gz
+    tar -xf SDL3_image-3.2.4.tar.gz
+    mkdir ./SDL3_image-3.2.4/build
+    cd ./SDL3_image-3.2.4/build
+    cmake ..
+    cmake --build . --parallel $(nproc)
+    sudo cmake --install .
+  ```
 
 ### Linux (Fedora)
 
