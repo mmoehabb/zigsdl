@@ -65,7 +65,6 @@ pub fn open(self: *Screen) !void {
 
     if (!sdl.c.SDL_Init(sdl.c.SDL_INIT_AUDIO)) {
         sdl.c.SDL_Log("Unable to initialize SDL Audio: %s", sdl.c.SDL_GetError());
-        return error.SDLInitializationFailed;
     }
 
     if (!sdl.c.TTF_Init()) {
