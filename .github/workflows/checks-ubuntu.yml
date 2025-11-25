@@ -1,0 +1,37 @@
+on: [push, pull_request]
+name: checks-ubuntu
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SDL3 Deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential git make \
+          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev \
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+
+      - name: Setup SDL3
+        run: |
+          wget https://github.com/libsdl-org/SDL/releases/download/release-3.2.26/SDL3-3.2.26.tar.gz
+          tar -xf SDL3-3.2.26.tar.gz
+          mkdir ./SDL3-3.2.26/build
+          cd ./SDL3-3.2.26/build
+          cmake ..
+          cmake --build . --parallel $(nproc)
+          sudo cmake --install .
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Run unit tests
+        run: zig build test --summary all
