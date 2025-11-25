@@ -17,22 +17,13 @@ const Object = @import("./object.zig");
 ///        .end = end,
 ///    },
 ///
-///    pub fn start(s: *Script, o: *Object) void {...}
-///
-///    pub fn update(s: *Script, o: *Object) void {
-///        const obj = o;
-///        const self = @as(*Movement, @constCast(
-///            @fieldParentPtr("_script_strategy", s.strategy),
-///        ));
-///        var em = o.*._scene.?.screen.?.getEventManager();
-///
-///        if (em.isKeyDown(.W)) obj.position.y -= self.speed;
-///        if (em.isKeyDown(.S)) obj.position.y += self.speed;
-///        if (em.isKeyDown(.D)) obj.position.x += self.speed;
-///        if (em.isKeyDown(.A)) obj.position.x -= self.speed;
+///    pub fn toScript(self: *Movement) modules.Script {
+///        return modules.Script{
+///            .name = "Movement",
+///            .strategy = &self._script_strategy,
+///        };
 ///    }
-///
-///    pub fn end(s: *Script, o: *Object) void {...}
+///    ...
 /// }
 /// ```
 pub const ScriptStrategy = struct {

@@ -21,7 +21,8 @@ const types = @import("../types/mod.zig");
 ///    pub fn toDrawable(self: *Rect) modules.Drawable {
 ///        return modules.Drawable{
 ///            .dim = self.dim,
-///            .color = self.color, .drawStrategy = &self._draw_strategy,
+///            .color = self.color,
+///            .drawStrategy = &self._draw_strategy,
 ///        };
 ///    }
 ///    ...
