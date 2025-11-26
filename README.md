@@ -331,8 +331,8 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 ### Version 0.2.0
 
 #### Features
+- [x] Add loop, pause and volume settings in the AudioPlayer.
 - [ ] Make scenes behave like cameras; they can zoom in and out, and move in the four directions.
-- [ ] Add loop and volume control in the AudioPlayer.
 
 #### Drawables
 - [ ] Implement a drawable for each common geometric shape.
