@@ -1,4 +1,4 @@
-![cova_icon_v2 1](./splash.png)
+![cova_icon_v2 1](./splash.svg)
 
 [![Static Badge](https://img.shields.io/badge/v0.15.1(stable)-orange?logo=Zig&logoColor=Orange&label=Zig&labelColor=Orange)](https://ziglang.org/download/)
 [![Static Badge](https://img.shields.io/badge/v0.1.0-blue?logo=GitHub&label=Release)](https://github.com/mmoehabb/zigsdl/releases/tag/0.1.0)

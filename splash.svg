@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="820"
+   height="462"
+   viewBox="0 0 820 462"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <rect
+       x="302.56927"
+       y="27.92947"
+       width="1492.1287"
+       height="352.32721"
+       id="rect2" />
+  </defs>
+  <g
+     id="layer1">
+    <g
+       id="g2"
+       transform="matrix(7.0022849,0,0,7.0022849,-128.0379,-50.874187)">
+      <path
+         style="display:inline;fill:#f3ba13;fill-opacity:1;stroke:none;stroke-width:25;stroke-linecap:round;stroke-linejoin:round"
+         d="M 51.076524,9.6757458 24.435798,42.127108 36.238651,42.178988 23.138781,70.894942 49.597925,49.649805 40.830091,49.623865 52.114138,34.319066 40.544747,34.241245 Z"
+         id="path1" />
+      <path
+         style="display:inline;fill:#ffd96b;fill-opacity:1;stroke:none;stroke-width:25;stroke-linecap:round;stroke-linejoin:round"
+         d="M 50.815682,10.3029 34.57847,37.898833 44.798962,37.743191 25.265888,68.145266 42.148043,49.629023 40.823681,49.628871 52.198253,34.334261 40.588701,34.148773 Z"
+         id="path2" />
+    </g>
+    <text
+       xml:space="preserve"
+       id="text2"
+       style="font-size:293.333px;text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:stroke fill markers"
+       x="331.58423"
+       y="0"
+       transform="translate(-43.870781,44.290176)"><tspan
+         x="302.56836"
+         y="294.82611"
+         id="tspan3"><tspan
+           style="font-weight:bold;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold'"
+           id="tspan1">SDL</tspan></tspan></text>
+  </g>
+</svg>
