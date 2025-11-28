@@ -16,10 +16,7 @@ pub fn main() !void {
         .frame_width = 128,
         .frame_height = 140,
     });
-    var idle_drawable = idle.toDrawable(
-        .{ .w = 120, .h = 150, .d = 1 },
-        .{},
-    );
+    var idle_drawable = idle.toDrawable(.{ .w = 120, .h = 150, .d = 1 }, .{});
 
     var obj = zigsdl.modules.Object.init(allocator, .{
         .position = .{ .x = 100, .y = 20, .z = 1 },
@@ -45,6 +42,7 @@ pub fn main() !void {
     // Add audioPlayer script to obj
     var audioPlayer = zigsdl.scripts.AudioPlayer{
         .wav_path = "./examples/assets/explosion.wav",
+        .loop = true,
     };
     try obj.addScript(@constCast(&audioPlayer.toScript()));
 
@@ -58,19 +56,17 @@ pub fn main() !void {
             .frame_width = 128,
             .frame_height = 140,
         });
-        var explode_drawable = explode.toDrawable(
-            .{ .w = 120, .h = 150, .d = 1 },
-            .{},
-        );
+        var explode_drawable = explode.toDrawable(.{ .w = 120, .h = 150, .d = 1 }, .{});
 
         var pressed = false;
 
         fn func(self: *anyopaque) void {
             const o = @as(*zigsdl.modules.Object, @ptrCast(@alignCast(self)));
             var em = o.*._scene.?.screen.?.getEventManager();
+            var ap = o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer");
 
             if (em.isKeyDown(.Space) and !pressed) {
-                if (o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer")) |ap| ap.play();
+                ap.?.play();
                 o.setDrawable(&explode_drawable);
                 pressed = true;
             }
