@@ -61,6 +61,21 @@ pub fn build(b: *std.Build) void {
     const exm3_run_step = b.step("example:hello-world", "Run examples/hello-world.zig");
     exm3_run_step.dependOn(&exm3_run_cmd.step);
 
+    const exm4 = b.addExecutable(.{
+        .name = "example:moving-scene",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/moving-scene.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm4.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm4);
+
+    const exm4_run_cmd = b.addRunArtifact(exm4);
+    const exm4_run_step = b.step("example:moving-scene", "Run examples/moving-scene.zig");
+    exm4_run_step.dependOn(&exm4_run_cmd.step);
+
     // Add test step
     const exe_unit_tests = b.addTest(.{
         .root_module = zigsdl,

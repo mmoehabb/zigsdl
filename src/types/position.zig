@@ -19,3 +19,11 @@ pub fn subtract(self: Position, pos: Position) Position {
         .z = self.z - pos.z,
     };
 }
+
+pub fn multiply(self: Position, operand: f32) Position {
+    return .{
+        .x = self.x * operand,
+        .y = self.y * operand,
+        .z = self.z * operand,
+    };
+}
