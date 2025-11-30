@@ -74,7 +74,7 @@ pub const Drawable = struct {
         rot: types.Rotation,
     ) !void {
         if (self.color) |color| _ = sdl.c.SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-        try self.drawStrategy.draw(self, self.drawStrategy, renderer, pos, rot, self.dim);
+        try self.drawStrategy.draw(self, self.drawStrategy, renderer, pos, rot, self.dim.getScaled());
     }
 
     /// This should only be called by the _object_ component.

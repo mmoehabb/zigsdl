@@ -7,10 +7,16 @@ const sdl = @import("../sdl.zig");
 
 const Screen = @import("./screen.zig");
 const Object = @import("./object.zig");
+const types = @import("../types/mod.zig");
 
 const Scene = @This();
 
 screen: ?*Screen,
+origin: types.Position = types.Position{},
+scale: f32 = 1.00,
+
+/// The scene [lifecycle](#root.types.lifecycle).
+lifecycle: types.LifeCycle = types.LifeCycle{},
 
 _allocator: std.mem.Allocator,
 _objects: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
@@ -23,21 +29,39 @@ pub fn init(allocator: std.mem.Allocator) Scene {
 }
 
 pub fn deinit(self: *Scene) void {
+    if (self.lifecycle.preClose) |func| func(self);
     self._objects.deinit(self._allocator);
+    if (self.lifecycle.postClose) |func| func(self);
 }
 
 /// This ought to be invoked by the [screen](#root.modules.screen).
 pub fn start(self: *Scene) !void {
+    if (self.lifecycle.preOpen) |func| func(self);
     for (self._objects.items) |obj| try obj.start();
+    if (self.lifecycle.postOpen) |func| func(self);
 }
 
 /// This ought to be invoked by the [screen](#root.modules.screen).
 pub fn update(self: *Scene, renderer: *sdl.c.SDL_Renderer) !void {
+    if (self.lifecycle.preUpdate) |func| func(self);
     for (self._objects.items) |obj| try obj.update(renderer);
+    if (self.lifecycle.postUpdate) |func| func(self);
 }
 
 pub fn setScreen(self: *Scene, screen: *Screen) void {
     self.screen = screen;
+}
+
+/// Move the scene (as camera) by _p.[dimension]_ units.
+///
+/// example:
+/// ```zig
+/// obj1.move(.{ x=20 });
+/// ```
+/// This moves _obj1_ by 20 units to the right.
+/// NOTICE: it doesn't move **to** position _p_.
+pub fn move(self: *Scene, p: types.Position) void {
+    self.origin = self.origin.add(p);
 }
 
 /// Note: this also invokes [object.setScene](#root.modules.object.setScene) method.
