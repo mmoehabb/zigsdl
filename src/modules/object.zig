@@ -92,8 +92,19 @@ pub fn update(self: *Object, renderer: *sdl.c.SDL_Renderer) !void {
     if (self.lifecycle.preUpdate) |func| func(self);
     for (self._scripts.items) |script| script.update(self);
 
-    const pos = if (self._parent) |p| self.position.add(p.position) else self.position;
-    const rot = if (self._parent) |p| self.rotation.add(p.rotation) else self.rotation;
+    self.drawable.?.dim.sf = if (self._parent) |p| blk: {
+        break :blk p.drawable.?.dim.scale * p.drawable.?.dim.sf;
+    } else self._scene.?.scale;
+
+    const abs_scale = if (self.drawable) |d| d.dim.getAbsScale() else 1.0;
+
+    const pos = if (self._parent) |p| blk: {
+        break :blk self.position.add(p.position).multiply(abs_scale);
+    } else self.position.add(self._scene.?.origin).multiply(abs_scale);
+
+    const rot = if (self._parent) |p| blk: {
+        break :blk self.rotation.add(p.rotation);
+    } else self.rotation;
 
     if (self.drawable) |d| try d.draw(renderer, pos, rot);
     for (self._children.items) |child| try child.update(renderer);
