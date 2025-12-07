@@ -71,7 +71,7 @@ pub fn addObject(self: *Scene, obj: *Object) !void {
 }
 
 /// Deep search the whole objects tree for an object with the specific passed name.
-/// Note: it returns only the first one it founds.
+/// Note: it returns only the first one it finds.
 pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
     for (self._objects.items) |obj| {
         if (std.mem.eql(u8, obj.name, name)) return obj;
@@ -85,10 +85,10 @@ pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
     return null;
 }
 
-/// Deep seach the whole objects tree and return an array of the ones that have the passed tag.
+/// Deep search the whole objects tree and return an array of the ones that have the passed tag.
 ///
-/// :param tag: the object tag to be searched for.
-/// :param max: the maximum number of objects to search for.
+/// :param `tag`: the object tag to be searched for.
+/// :param `max`: the maximum number of objects to search for.
 pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
     arr: [max]?*Object,
     size: u8,

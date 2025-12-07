@@ -42,7 +42,7 @@ _active: bool,
 
 pub fn init(
     allocator: std.mem.Allocator,
-    params: struct {
+    props: struct {
         position: types.Position = types.Position{},
         rotation: types.Rotation = types.Rotation{},
         name: []const u8 = "unnamed",
@@ -52,12 +52,12 @@ pub fn init(
     },
 ) Object {
     return Object{
-        .position = params.position,
-        .rotation = params.rotation,
-        .name = params.name,
-        .tag = params.tag,
-        .drawable = params.drawable,
-        ._active = params.active,
+        .position = props.position,
+        .rotation = props.rotation,
+        .name = props.name,
+        .tag = props.tag,
+        .drawable = props.drawable,
+        ._active = props.active,
         ._allocator = allocator,
     };
 }
@@ -152,7 +152,7 @@ pub fn addScript(self: *Object, script: *Script) !void {
     try self._scripts.append(self._allocator, script);
 }
 
-/// By convention, the name of any script equals exactly the name of the type.
+/// By convention, the name of any script should equal exactly the name of the type.
 /// See [root.modules.script.name](#root.modules.script.name).
 pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
     for (self._scripts.items) |script| {
@@ -178,7 +178,7 @@ pub fn getChildByIndex(self: *Object, index: usize) *Object {
     return self._children.items[index];
 }
 
-/// Note: this also removes the child from the parent.
+/// Note: this also removes the child from the parent (it mutates the parent state).
 pub fn detach(self: *Object) void {
     const oldparent = self._parent;
     self._parent = null;
@@ -270,7 +270,7 @@ test "should detach the child from its parent after being removed" {
 }
 
 /// Deep search the whole children tree for an object with the specific passed name.
-/// Note: it returns only the first one it founds.
+/// Note: it returns only the first one it finds.
 pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     for (self._children.items) |child| {
         if (std.mem.eql(u8, child.name, name)) return child;
@@ -284,10 +284,10 @@ pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     return null;
 }
 
-/// Deep seach the whole children tree and return an array of the ones that have the passed tag.
+/// Deep search the whole children tree and return an array of the ones that have the passed tag.
 ///
-/// :param tag: the object tag to be searched for.
-/// :param max: the maximum number of objects to search for.
+/// :param `tag`: the object tag to be searched for.
+/// :param `max`: the maximum number of objects to search for.
 pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) struct {
     arr: [max]?*Object,
     size: u8,
