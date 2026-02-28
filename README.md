@@ -341,12 +341,18 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Implement SVG Drawable.
 
 #### Refactor
-- [ ] Improve _getObjectByName_ & _getObjectsByTag_ methods in the _scene_ component. By storing all objects in hash-tables rather than exhaustively searching for each required object by its tag or name. Be aware that each object being added in the tree (calling _addChild_ method from any inner child object) should also update the scene state.
+- [ ] Improve _getObjectByName_ & _getObjectsByTag_ methods in the _scene_ component. \
+By storing all objects in hash-tables rather than exhaustively searching for each required \
+object by its tag or name. Be aware that each object being added in the tree (calling _addChild_ \
+method from any inner child object) should also update the scene state.
 
 #### Scripts
 - [ ] Implement _Rigidbody_ script; it should, at minimum, specify the mass of the object, detect collisions, and apply gravity.
 - [ ] Implement _Collision_ script; any two objects with this script, and one of them is a rigid-body, they shall not overlap.
-- [ ] Implement AudioSource and AudioListener scripts. The general idea is that whenever an AudioSource commence to play an audio, it searches for an AudioListener in the same scene. Once it find one, it plays the audio with the volumes of its channels twisted according to the distance between the two objects (one carries the source, and another carries the listener).
+- [ ] Implement AudioSource and AudioListener scripts. The general idea is that whenever an AudioSource \
+commence to play an audio, it searches for an AudioListener in the same scene. Once it find one, it plays \
+the audio with the volumes of its channels twisted according to the distance between the two objects (one \
+carries the source, and another carries the listener).
 - [ ] Write Animation and Animator scripts.
 
 #### Examples

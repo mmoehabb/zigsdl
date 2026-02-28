@@ -11,7 +11,8 @@ zig build example:hello-world &&
 zig build example:moving-box &&
 zig build example:moving-scene &&
 zig build example:explosion &&
-zig build example:svg
+zig build example:svg &&
+zig build example:geometric-shapes
 """
 
 [bash.example]
@@ -20,6 +21,7 @@ moving-box = "zig build example:moving-box"
 moving-scene = "zig build example:moving-scene"
 explosion = "zig build example:explosion"
 svg = "zig build example:svg"
+geometric-shapes = "zig build example:geometric-shapes"
 
 [zshell]
 format = "zig fmt ."
@@ -30,7 +32,8 @@ zig build example:hello-world &&
 zig build example:moving-box &&
 zig build example:moving-scene &&
 zig build example:explosion &&
-zig build example:svg
+zig build example:svg &&
+zig build example:geometric-shapes
 """
 
 [zshell.example]
@@ -39,6 +42,7 @@ moving-box = "zig build example:moving-box"
 moving-scene = "zig build example:moving-scene"
 explosion = "zig build example:explosion"
 svg = "zig build example:svg"
+geometric-shapes = "zig build example:geometric-shapes"
 
 [bat]
 format = "zig fmt ."
@@ -49,7 +53,8 @@ zig build example:hello-world &&
 zig build example:moving-box &&
 zig build example:moving-scene &&
 zig build example:explosion &&
-zig build example:svg
+zig build example:svg &&
+zig build example:geometric-shapes
 """
 
 [bat.example]
@@ -58,3 +63,4 @@ moving-box = "zig build example:moving-box"
 moving-scene = "zig build example:moving-scene"
 explosion = "zig build example:explosion"
 svg = "zig build example:svg"
+geometric-shapes = "zig build example:geometric-shapes"
