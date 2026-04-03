@@ -337,7 +337,7 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 #### Drawables
 - [ ] Implement a drawable for each common geometric shape.
 - [ ] Implement interactive UI drawables: Button, TextInput, Select, and Checkbox.
-- [ ] Implement SVG Drawable.
+- [x] Implement SVG Drawable.
 
 #### Refactor
 - [ ] Improve _getObjectByName_ & _getObjectsByTag_ methods in the _scene_ component. By storing all objects in hash-tables rather than exhaustively searching for each required object by its tag or name. Be aware that each object being added in the tree (calling _addChild_ method from any inner child object) should also update the scene state.
@@ -349,6 +349,7 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [ ] Write Animation and Animator scripts.
 
 #### Examples
-- [ ] Write SVG Example.
+- [x] Write SVG Example.
+- [ ] Write MainMenu/UI Example.
 - [ ] Develop a [Pong game](https://www.ponggame.org/).
 - [ ] Develop a Sokoban game.

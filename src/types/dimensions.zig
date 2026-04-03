@@ -8,7 +8,7 @@ scale: f32 = 1.0,
 /// scale factor: is basically a calculated number out of the scales of
 /// the parent (if exists) and the scene (if exists).
 ///
-/// For example: the scale-factor of an object _o_ which is a child for parent _p_,
+/// For example: the scale-factor of an object _o_ which is a child of some parent _p_,
 /// in scene _s_, whereas p.scale = 1.5 and s.scale = 1.25, equals 1.5 * 1.25.
 sf: f32 = 1.0,
 
@@ -18,6 +18,7 @@ pub fn getScaled(self: Dimensions) Dimensions {
         .w = self.w * self.scale * self.sf,
         .h = self.h * self.scale * self.sf,
         .d = self.d * self.scale * self.sf,
+        .scale = self.scale,
     };
 }
 

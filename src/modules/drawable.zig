@@ -36,7 +36,7 @@ pub const DrawStrategy = struct {
         _: types.Position,
         _: types.Rotation,
         _: types.Dimensions,
-    ) error{RenderFailed}!void,
+    ) error{ RenderFailed, InvalidInputs }!void,
 
     destroy: *const fn (_: *Drawable, _: *const DrawStrategy) void,
 };
