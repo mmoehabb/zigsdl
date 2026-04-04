@@ -76,6 +76,21 @@ pub fn build(b: *std.Build) void {
     const exm4_run_step = b.step("example:moving-scene", "Run examples/moving-scene.zig");
     exm4_run_step.dependOn(&exm4_run_cmd.step);
 
+    const exm5 = b.addExecutable(.{
+        .name = "example:svg",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/svg.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm5.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm5);
+
+    const exm5_run_cmd = b.addRunArtifact(exm5);
+    const exm5_run_step = b.step("example:svg", "Run examples/svg.zig");
+    exm5_run_step.dependOn(&exm5_run_cmd.step);
+
     // Add test step
     const exe_unit_tests = b.addTest(.{
         .root_module = zigsdl,
