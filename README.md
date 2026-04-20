@@ -57,6 +57,7 @@ For instance:
   ```bash
   zig build example:moving-box
   ```
+> You may also run examples via [luci](https://github.com/mmoehabb/luci). Which is a simple CLI tool that simplifies and unifies running CLI commands across different platforms.
 
 ## Extend the Functionality
 

@@ -1,0 +1,25 @@
+
+title = "Hello World!"
+description = "Luci config hello world example."
+
+[bash]
+format = "zig fmt ."
+test = "zig build test"
+build = "zig build"
+
+[bash.example]
+hello-world = "zig build example:hello-world"
+moving-box = "zig build example:moving-box"
+moving-scene = "zig build example:moving-scene"
+explosion = "zig build example:explosion"
+svg = "zig build example:svg"
+
+[zshell]
+hello-world = "zig build example:hello-world"
+moving-box = "zig build example:moving-box"
+moving-scene = "zig build example:moving-scene"
+explosion = "zig build example:explosion"
+svg = "zig build example:svg"
+
+[bat.run]
+example = "echo Hello World!"
