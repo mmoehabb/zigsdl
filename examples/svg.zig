@@ -1,19 +1,15 @@
 const zigsdl = @import("zigsdl");
 const std = @import("std");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.panic("Memory leak detected!", .{});
-    }
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
     const screen_width = 1024;
     const screen_height = 680;
 
     // Create a drawable svg object (1)
     var svg = zigsdl.drawables.SVG.new(.{
+        .io = init.io,
         .dim = .{ .scale = 0.75 },
         .path = "./splash.svg",
     });
@@ -28,6 +24,7 @@ pub fn main() !void {
 
     // Create a drawable svg object (2)
     var svg2 = zigsdl.drawables.SVG.new(.{
+        .io = init.io,
         .content =
         \\ <svg width="100" height="100">
         \\   <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />

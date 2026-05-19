@@ -1,13 +1,8 @@
 const zigsdl = @import("zigsdl");
 const std = @import("std");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.panic("Memory leak detected!", .{});
-    }
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
     // Create a drawable object
     var rect = zigsdl.drawables.Rect.new(

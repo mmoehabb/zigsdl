@@ -1,6 +1,6 @@
 ![cova_icon_v2 1](./splash.svg)
 
-[![Static Badge](https://img.shields.io/badge/v0.15.1(stable)-orange?logo=Zig&logoColor=Orange&label=Zig&labelColor=Orange)](https://ziglang.org/download/)
+[![Static Badge](https://img.shields.io/badge/v0.16.0(stable)-orange?logo=Zig&logoColor=Orange&label=Zig&labelColor=Orange)](https://ziglang.org/download/)
 [![Static Badge](https://img.shields.io/badge/v0.1.1-blue?logo=GitHub&label=Release)](https://github.com/mmoehabb/zigsdl/releases/tag/0.1.1)
 [![Static Badge](https://img.shields.io/badge/MIT-silver?label=License)](https://github.com/mmoehabb/zigsdl/blob/main/LICENSE)
 
@@ -46,7 +46,7 @@ exe.root_module.addImport("zigsdl", zigsdl_mod);
 
 First ensure to install SDL3 on your machine, and Zig of course. Choose any example file in the examples directory, and then run it with the following command:
 
-> Note: compatible only with zig versions ^0.15.0
+> Note: compatible only with zig versions ^0.16.0
 
   ```bash
   zig build example:<example-filename>

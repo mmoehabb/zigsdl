@@ -1,13 +1,8 @@
 const zigsdl = @import("zigsdl");
 const std = @import("std");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.panic("Memory leak detected!", .{});
-    }
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
     // Create sprite object
     var idle = zigsdl.drawables.Sprite.new(.{
@@ -38,11 +33,13 @@ pub fn main() !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
     });
+    obj2.deinit();
 
     // Add audioPlayer script to obj
     var audioPlayer = zigsdl.scripts.AudioPlayer{
+        .io = init.io,
         .wav_path = "./examples/assets/explosion.wav",
-        .loop = true,
+        .loop = false,
     };
     try obj.addScript(@constCast(&audioPlayer.toScript()));
 
