@@ -13,6 +13,10 @@ wav_path: []const u8,
 /// Set it to true before invoking _play_, in order to play the audio_buf recursively.
 loop: bool = false,
 
+/// Used to destroy audio streams automatically after the duration pass.
+io: std.Io,
+_io_thread: ?std.Thread = null,
+
 /// The volume of the audio to be played. Volume values range between 0.0 and 1.0.
 _volume: f32 = 1.0,
 
@@ -81,6 +85,7 @@ fn end(s: *modules.Script, _: *modules.Object) void {
         *AudioPlayer,
         @constCast(@fieldParentPtr("_script_strategy", s.strategy)),
     );
+    if (self._io_thread) |thread| thread.join();
     sdl.c.SDL_free(self._audio_buf);
 
     // NOTE: currently the code relies on the backend, e.g. ALSA, for handling
@@ -158,8 +163,7 @@ fn playStream(self: *AudioPlayer) void {
     }
 
     // Destroy the audio-stream after the audio duration is passed.
-    const err = std.Thread.spawn(.{}, destroyAudioStream, .{self});
-    if (err == error.SpawnError) sdl.c.SDL_DestroyAudioStream(self._audio_stream);
+    self._io_thread = std.Thread.spawn(.{}, destroyAudioStreamOnDurEnd, .{self}) catch unreachable;
 }
 
 fn getAudioDur(self: *AudioPlayer) u32 {
@@ -169,9 +173,22 @@ fn getAudioDur(self: *AudioPlayer) u32 {
     return sample_per_channel / @as(u32, @intCast(self._audio_spec.freq));
 }
 
-fn destroyAudioStream(self: *AudioPlayer) void {
-    std.Thread.sleep(self._audio_dur * 1_000_000_000);
+fn destroyAudioStreamOnDurEnd(self: *AudioPlayer) void {
+    var f = self.io.async(destroyAsync, .{self});
+    f.await(self.io);
+}
+
+fn destroyAsync(self: *AudioPlayer) void {
+    self.io.sleep(.fromSeconds(self._audio_dur), .awake) catch {
+        std.log.err("audio-player: Io Sleep Failed!", .{});
+        sdl.c.SDL_DestroyAudioStream(self._audio_stream);
+        self._audio_stream = null;
+        return;
+    };
+
     if (self.loop) return self.playStream();
+    if (self._audio_stream == null) return;
+
     sdl.c.SDL_DestroyAudioStream(self._audio_stream);
     self._audio_stream = null;
 }

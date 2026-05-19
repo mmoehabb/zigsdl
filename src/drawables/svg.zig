@@ -15,6 +15,9 @@ content: []const u8 = "",
 
 dim: types.Dimensions = .{},
 
+/// Used in creating a temporary file, in case the content is provided.
+io: std.Io,
+
 _texture: [*c]sdl.c.SDL_Texture = null,
 _draw_strategy: modules.DrawStrategy = modules.DrawStrategy{
     .draw = draw,
@@ -23,6 +26,7 @@ _draw_strategy: modules.DrawStrategy = modules.DrawStrategy{
 
 pub fn new(svg: SVG) SVG {
     return SVG{
+        .io = svg.io,
         .path = svg.path,
         .content = svg.content,
         .dim = svg.dim,
@@ -59,9 +63,9 @@ fn draw(
     const texture = self._texture orelse blk: {
         if (self.content.len > 0) {
             // Create a temporary file of the svg content
-            const file = std.fs.createFileAbsolute("/tmp/zigsdl.tmp.svg", .{}) catch return error.InvalidInputs;
-            defer file.close();
-            file.writeAll(self.content) catch unreachable;
+            const file = std.Io.Dir.createFileAbsolute(self.io, "/tmp/zigsdl.tmp.svg", .{}) catch return error.InvalidInputs;
+            defer file.close(self.io);
+            file.writeStreamingAll(self.io, self.content) catch unreachable;
 
             // Store the file path into svg_path variable
             self.path = "/tmp/zigsdl.tmp.svg";
@@ -98,5 +102,5 @@ fn draw(
 fn destroy(_: *modules.Drawable, ds: *const modules.DrawStrategy) void {
     const self = @as(*SVG, @constCast(@fieldParentPtr("_draw_strategy", ds)));
     if (self._texture) |_| sdl.c.SDL_DestroyTexture(self._texture.?);
-    if (self.content.len > 0) std.fs.deleteFileAbsolute(self.path) catch {};
+    if (self.content.len > 0) std.Io.Dir.deleteFileAbsolute(self.io, self.path) catch {};
 }
