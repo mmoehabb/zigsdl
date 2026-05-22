@@ -52,6 +52,8 @@ _script_strategy: modules.ScriptStrategy = modules.ScriptStrategy{
     .end = end,
 },
 
+_end_invoked: bool = false,
+
 pub fn toScript(self: *AudioPlayer) modules.Script {
     return modules.Script{
         .name = "AudioPlayer",
@@ -85,6 +87,7 @@ fn end(s: *modules.Script, _: *modules.Object) void {
         *AudioPlayer,
         @constCast(@fieldParentPtr("_script_strategy", s.strategy)),
     );
+    self._end_invoked = true;
     if (self._io_thread) |thread| thread.join();
     sdl.c.SDL_free(self._audio_buf);
 
@@ -186,6 +189,7 @@ fn destroyAsync(self: *AudioPlayer) void {
         return;
     };
 
+    if (self._end_invoked) return; // NOTE: in order to avoid double free error
     if (self.loop) return self.playStream();
     if (self._audio_stream == null) return;
 

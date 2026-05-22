@@ -33,7 +33,7 @@ pub fn main(init: std.process.Init) !void {
         .rotation = .{ .x = 0, .y = 0, .z = 0 },
         .drawable = &text_drawable,
     });
-    obj2.deinit();
+    defer obj2.deinit();
 
     // Add audioPlayer script to obj
     var audioPlayer = zigsdl.scripts.AudioPlayer{
