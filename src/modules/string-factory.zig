@@ -27,32 +27,26 @@ pub fn deinit(self: *StringFactory) void {
 pub fn create(self: *StringFactory, str: []const u8) !String {
     // check if there is an available spot in the buf; if there is not, extend the buffer.
     // Then copy the string into the buffer
-    const start = self.findSpot(str.len) orelse try self.extendTheBuffer(str.len);
-    @memcpy(self._buf[start .. start + str.len], str);
+    var spot = self.findSpot(str.len) orelse Spot{
+        .index = self._store.items.len,
+        .start = try self.extendTheBuffer(str.len),
+        .end = 0, // NOTE: must be assigned below.
+    };
+    spot.end = spot.start + str.len;
+
+    @memcpy(self._buf[spot.start..spot.end], str);
 
     // store the copied string info into the store, with preserving the sorting in the store.
-    const end = start + str.len;
-    const new_str = String{
-        .factory = self,
-        .start = start,
-        .end = end,
-    };
+    const new_str = String.init(self, spot);
 
-    var i: usize = self._store.items.len;
-    for (self._store.items, 0..) |spot, index| {
-        if (spot.start > start) {
-            i = index;
-            break;
-        }
-    }
-    try self._store.insert(self._allocator, i, new_str);
+    try self._store.insert(self._allocator, spot.index, new_str);
 
     return new_str;
 }
 
 pub fn getOrCreate(self: *StringFactory, str: []const u8) !String {
     for (self._store.items) |spot| {
-        const spotStr = self._buf[spot.start..spot.end];
+        const spotStr = self._buf[spot._start..spot._end];
         if (std.mem.eql(u8, spotStr, str)) return spot;
     }
     return try self.create(str);
@@ -60,15 +54,22 @@ pub fn getOrCreate(self: *StringFactory, str: []const u8) !String {
 
 /// Searches for an available spot for a string with a specific number of characters.
 /// - `len`: the length of the required string.
-/// @return: the index of the available spot in the buf, if found, otherwise return null.
-fn findSpot(self: *StringFactory, len: usize) ?usize {
-    if (self._store.items.len == 0 and len <= PAGE_SIZE) return 0;
+/// @return: the start of the available spot in the buf along with the index of this
+/// new spot in the store, if found, otherwise return null.
+fn findSpot(self: *StringFactory, len: usize) ?Spot {
+    var spot = Spot{ .index = 0, .start = 0, .end = 0 };
+    if (self._store.items.len == 0 and len <= PAGE_SIZE) return spot;
 
     var last_end: usize = 0;
-    for (self._store.items) |spot| {
-        const avai_len = spot.start - last_end;
-        if (len <= avai_len) return last_end;
-        last_end = spot.end;
+    for (self._store.items, 0..) |str, i| {
+        const avai_len = str._start - last_end;
+        if (len <= avai_len) {
+            spot.index = i;
+            spot.start = last_end;
+            spot.end = last_end + len;
+            return spot;
+        }
+        last_end = str._end;
     }
 
     return null;
@@ -89,24 +90,49 @@ fn extendTheBuffer(self: *StringFactory, len: usize) !usize {
     return i;
 }
 
-/// A spot in the strings type buffer
+/// A string stored in the factory store.
 const String = struct {
-    factory: *StringFactory,
-    start: usize,
-    end: usize,
+    _factory: *StringFactory,
+    _start: usize,
+    _end: usize,
+
+    /// NOTE: this should be used only internally by the StringFactory.
+    pub fn init(factory: *StringFactory, spot: Spot) String {
+        return String{
+            ._factory = factory,
+            ._start = spot.start,
+            ._end = spot.end,
+        };
+    }
 
     pub fn read(self: *const String) []const u8 {
-        return self.factory._buf[self.start..self.end];
+        return self._factory._buf[self._start..self._end];
     }
 
     pub fn destroy(self: *String) void {
-        for (self.factory._store.items, 0..) |item, i| {
-            if (item.start == self.start and item.end == self.end) {
-                _ = self.factory._store.orderedRemove(i);
+        for (self._factory._store.items, 0..) |item, i| {
+            if (item._start == self._start and item._end == self._end) {
+                _ = self._factory._store.orderedRemove(i);
                 break;
             }
         }
     }
+};
+
+/// A spot contains info about the buffer and the store together; it basically
+/// correlate between (start/index) locations in the buffer with an order/index
+/// in the store. It's being used as a pseudo String; just the factory attribute
+/// is replaced with the string order in the factory store.
+///
+/// NOTE: this should be used only temporary before creating strings; as the index
+/// shall vary when strings are created continuously.
+const Spot = struct {
+    /// The order of the spot in the factory store.
+    index: usize,
+    /// Where the spot starts in the factory buffer.
+    start: usize,
+    /// Where the spot starts in the factory buffer.
+    end: usize,
 };
 
 // =========================================================
@@ -250,12 +276,12 @@ test "Should reuse freed gaps in the buffer" {
     var a = try factory.create("Hello");
     const b = try factory.create("World");
 
-    const b_start = b.start;
+    const b_start = b._start;
     a.destroy();
 
     const c = try factory.create("Hi");
     try expect(std.mem.eql(u8, "Hi", c.read()));
-    try expect(c.start < b_start);
+    try expect(c._start < b_start);
 }
 
 test "Should read correct content after multiple operations" {
