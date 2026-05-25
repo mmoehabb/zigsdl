@@ -57,7 +57,7 @@ pub fn main(init: std.process.Init) !void {
     try scene.addObject(&obj2);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(allocator, .{
         .title = "Simple Game",
         .width = screen_width,
         .height = screen_height,

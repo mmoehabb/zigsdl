@@ -3,7 +3,7 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
-const EventManager = @import("event-manager.zig");
+const Globals = @import("globals.zig");
 const Scene = @import("scene.zig");
 const types = @import("../types/mod.zig");
 
@@ -24,8 +24,6 @@ rate: u32,
 /// The screen [lifecycle](#root.types.lifecycle).
 lifecycle: *const types.LifeCycle = &types.LifeCycle{},
 
-_em: EventManager,
-
 _scene: ?*Scene = null,
 _window: ?*sdl.c.SDL_Window = null,
 _renderer: ?*sdl.c.SDL_Renderer = null,
@@ -39,13 +37,13 @@ pub fn init(
         height: c_int,
         rate: u32,
     },
-) Screen {
+) !Screen {
+    try Globals.init(allocator);
     return Screen{
         .title = params.title,
         .width = params.width,
         .height = params.height,
         .rate = params.rate,
-        ._em = EventManager.init(allocator),
     };
 }
 
@@ -97,7 +95,7 @@ pub fn open(self: *Screen) !void {
 fn update(self: *Screen) !void {
     if (self.lifecycle.preUpdate) |func| func(self);
 
-    const event = try self._em.invokeEventLoop();
+    const event = try Globals.eventManager.?.invokeEventLoop();
     if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
     _ = sdl.c.SDL_RenderClear(self._renderer);
@@ -116,7 +114,7 @@ pub fn close(self: *Screen) !void {
     _ = self._renderer orelse return error.ScreenNotInitialized;
     _ = self._window orelse return error.ScreenNotInitialized;
 
-    self._em.deinit();
+    Globals.deinit();
 
     self._opened = false;
     if (self.lifecycle.postClose) |func| func(self);
@@ -130,8 +128,4 @@ pub fn close(self: *Screen) !void {
 pub fn setScene(self: *Screen, newscene: *Scene) void {
     self._scene = newscene;
     self._scene.?.setScreen(self);
-}
-
-pub fn getEventManager(self: *Screen) *EventManager {
-    return &self._em;
 }
