@@ -23,3 +23,7 @@ pub fn deinit() void {
     stringFactory.?.deinit();
     eventManager.?.deinit();
 }
+
+pub fn isInitialized() bool {
+    return initialized;
+}

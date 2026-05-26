@@ -4,6 +4,9 @@ const std = @import("std");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
+    try zigsdl.modules.Globals.init(allocator);
+    defer zigsdl.modules.Globals.deinit();
+
     // A Green Rectangle
     var rect = zigsdl.drawables.Rect.new(
         .{ .w = 50, .h = 25, .d = 1 },
@@ -34,7 +37,7 @@ pub fn main(init: std.process.Init) !void {
     defer obj2.deinit();
 
     // Add Blue Circle
-    var circle = zigsdl.drawables.Eclipse.new(
+    var circle = try zigsdl.drawables.Ellipse.new(
         init.io,
         .{ .w = 25, .h = 25, .d = 1 },
         .{ .b = 255 },
@@ -72,7 +75,7 @@ pub fn main(init: std.process.Init) !void {
     try scene.addObject(&obj4);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = try zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(.{
         .title = "Simple Game",
         .width = 320,
         .height = 320,

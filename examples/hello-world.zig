@@ -4,6 +4,9 @@ const std = @import("std");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
+    try zigsdl.modules.Globals.init(allocator);
+    defer zigsdl.modules.Globals.deinit();
+
     const screen_width = 320;
     const screen_height = 320;
 
@@ -38,7 +41,7 @@ pub fn main(init: std.process.Init) !void {
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = try zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(.{
         .title = "Simple Game",
         .width = 320,
         .height = 320,
