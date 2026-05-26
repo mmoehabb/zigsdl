@@ -1,5 +1,6 @@
 const zigsdl = @import("zigsdl");
 const std = @import("std");
+const globals = zigsdl.modules.Globals;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
@@ -57,17 +58,17 @@ pub fn main(init: std.process.Init) !void {
     scene.lifecycle.postUpdate = struct {
         fn func(self: *anyopaque) void {
             const s = @as(*zigsdl.modules.Scene, @ptrCast(@alignCast(self)));
-            if (s.screen.?._em.isKeyDown(.W)) s.move(.{ .y = 5 });
-            if (s.screen.?._em.isKeyDown(.D)) s.move(.{ .x = -5 });
-            if (s.screen.?._em.isKeyDown(.S)) s.move(.{ .y = -5 });
-            if (s.screen.?._em.isKeyDown(.A)) s.move(.{ .x = 5 });
-            if (s.screen.?._em.isKeyDown(.E)) s.scale += 0.1;
-            if (s.screen.?._em.isKeyDown(.Q)) s.scale -= 0.1;
+            if (globals.eventManager.?.isKeyDown(.W)) s.move(.{ .y = 5 });
+            if (globals.eventManager.?.isKeyDown(.D)) s.move(.{ .x = -5 });
+            if (globals.eventManager.?.isKeyDown(.S)) s.move(.{ .y = -5 });
+            if (globals.eventManager.?.isKeyDown(.A)) s.move(.{ .x = 5 });
+            if (globals.eventManager.?.isKeyDown(.E)) s.scale += 0.1;
+            if (globals.eventManager.?.isKeyDown(.Q)) s.scale -= 0.1;
         }
     }.func;
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(allocator, .{
         .title = "Simple Game",
         .width = 320,
         .height = 320,

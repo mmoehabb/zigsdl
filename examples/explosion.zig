@@ -59,10 +59,10 @@ pub fn main(init: std.process.Init) !void {
 
         fn func(self: *anyopaque) void {
             const o = @as(*zigsdl.modules.Object, @ptrCast(@alignCast(self)));
-            var em = o.*._scene.?.screen.?.getEventManager();
+            var em = zigsdl.modules.Globals.eventManager;
             var ap = o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer");
 
-            if (em.isKeyDown(.Space) and !pressed) {
+            if (em.?.isKeyDown(.Space) and !pressed) {
                 ap.?.play();
                 o.setDrawable(&explode_drawable);
                 pressed = true;
@@ -77,7 +77,7 @@ pub fn main(init: std.process.Init) !void {
     try scene.addObject(&obj2);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(allocator, .{
         .title = "Simple Game",
         .width = 320,
         .height = 320,
