@@ -47,12 +47,13 @@ fn draw(
 
     const center = .{
         .x = pos.x + (dim.w / 2),
-        .y = pos.y + (dim.h / 2),
+        .y = pos.y + (dim.h / 3),
     };
 
     const angle = std.math.degreesToRadians(rot.z);
     const cos = @cos(angle);
     const sin = @sin(angle);
+    const tan = @sin(angle);
 
     const pa = sdl.c.SDL_Vertex{
         .position = .{
@@ -63,18 +64,19 @@ fn draw(
     };
     const pb = sdl.c.SDL_Vertex{
         .position = .{
-            .x = pa.position.x - (dim.h * sin),
-            .y = pa.position.y + (dim.h * cos),
-        },
-        .color = color,
-    };
-    const pc = sdl.c.SDL_Vertex{
-        .position = .{
             .x = pa.position.x + (dim.w * cos),
             .y = pa.position.y + (dim.w * sin),
         },
         .color = color,
     };
+    const pc = sdl.c.SDL_Vertex{
+        .position = .{
+            .x = center.x - ((tan * 2 * dim.h) / 3),
+            .y = center.y + ((cos * 2 * dim.h) / 3),
+        },
+        .color = color,
+    };
+
     const verts = [_]sdl.c.SDL_Vertex{ pa, pb, pc };
     const indices = [_]c_int{ 0, 1, 2 };
 
