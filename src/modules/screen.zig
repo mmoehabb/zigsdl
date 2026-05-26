@@ -30,7 +30,6 @@ _renderer: ?*sdl.c.SDL_Renderer = null,
 _opened: bool = false,
 
 pub fn init(
-    allocator: std.mem.Allocator,
     params: struct {
         title: []const u8,
         width: c_int,
@@ -38,7 +37,7 @@ pub fn init(
         rate: u32,
     },
 ) !Screen {
-    try Globals.init(allocator);
+    if (!Globals.isInitialized()) return error.MustInitializeGlobals;
     return Screen{
         .title = params.title,
         .width = params.width,
@@ -113,8 +112,6 @@ pub fn close(self: *Screen) !void {
 
     _ = self._renderer orelse return error.ScreenNotInitialized;
     _ = self._window orelse return error.ScreenNotInitialized;
-
-    Globals.deinit();
 
     self._opened = false;
     if (self.lifecycle.postClose) |func| func(self);

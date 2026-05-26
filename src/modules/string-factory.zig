@@ -44,6 +44,23 @@ pub fn create(self: *StringFactory, str: []const u8) !String {
     return new_str;
 }
 
+pub fn createBuffer(self: *StringFactory, size: usize) !String {
+    // check if there is an available spot in the buf; if there is not, extend the buffer.
+    // Then copy the string into the buffer
+    var spot = self.findSpot(size) orelse Spot{
+        .index = self._store.items.len,
+        .start = try self.extendTheBuffer(size),
+        .end = 0, // NOTE: must be assigned below.
+    };
+    spot.end = spot.start + size;
+
+    // store the copied string info into the store, with preserving the sorting in the store.
+    const new_str = String.init(self, spot);
+    try self._store.insert(self._allocator, spot.index, new_str);
+
+    return new_str;
+}
+
 pub fn getOrCreate(self: *StringFactory, str: []const u8) !String {
     for (self._store.items) |spot| {
         const spotStr = self._buf[spot._start..spot._end];
@@ -106,6 +123,10 @@ const String = struct {
     }
 
     pub fn read(self: *const String) []const u8 {
+        return self._factory._buf[self._start..self._end];
+    }
+
+    pub fn getBuffer(self: *const String) []u8 {
         return self._factory._buf[self._start..self._end];
     }
 

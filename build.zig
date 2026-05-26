@@ -15,7 +15,9 @@ pub fn build(b: *std.Build) void {
     zigsdl.linkSystemLibrary("SDL3_image", .{ .needed = true });
     zigsdl.link_libc = true;
 
-    // Add the examples files as executables
+    // ************************************************
+    // **** Add the examples files as executables *****
+    // ************************************************
     const exm1 = b.addExecutable(.{
         .name = "example:moving-box",
         .root_module = b.createModule(.{
@@ -91,7 +93,24 @@ pub fn build(b: *std.Build) void {
     const exm5_run_step = b.step("example:svg", "Run examples/svg.zig");
     exm5_run_step.dependOn(&exm5_run_cmd.step);
 
-    // Add test step
+    const exm6 = b.addExecutable(.{
+        .name = "example:geometric-shapes",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/geometric-shapes.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm6.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm6);
+
+    const exm6_run_cmd = b.addRunArtifact(exm6);
+    const exm6_run_step = b.step("example:geometric-shapes", "Run examples/geometric-shapes.zig");
+    exm6_run_step.dependOn(&exm6_run_cmd.step);
+
+    // ***********************************
+    // ********** Add test step **********
+    // ***********************************
     const exe_unit_tests = b.addTest(.{
         .root_module = zigsdl,
     });
