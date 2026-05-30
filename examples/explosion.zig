@@ -4,7 +4,7 @@ const std = @import("std");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
-    try zigsdl.modules.Globals.init(allocator);
+    try zigsdl.modules.Globals.init(allocator, init.io);
     defer zigsdl.modules.Globals.deinit();
 
     // Create sprite object
@@ -40,7 +40,6 @@ pub fn main(init: std.process.Init) !void {
 
     // Add audioPlayer script to obj
     var audioPlayer = zigsdl.scripts.AudioPlayer{
-        .io = init.io,
         .wav_path = "./examples/assets/explosion.wav",
         .loop = false,
     };
@@ -66,7 +65,7 @@ pub fn main(init: std.process.Init) !void {
             var ap = o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer");
 
             if (em.?.isKeyDown(.Space) and !pressed) {
-                ap.?.play();
+                ap.?.play() catch unreachable;
                 o.setDrawable(&explode_drawable);
                 pressed = true;
             }

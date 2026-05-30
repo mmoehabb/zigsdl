@@ -13,20 +13,12 @@ wav_path: []const u8,
 /// Set it to true before invoking _play_, in order to play the audio_buf recursively.
 loop: bool = false,
 
-/// Used to destroy audio streams automatically after the duration pass.
-io: std.Io,
-_io_thread: ?std.Thread = null,
-
 /// The volume of the audio to be played. Volume values range between 0.0 and 1.0.
 _volume: f32 = 1.0,
 
 /// Audio file specifications like: number of channels, format, and frequency.
 /// It gets loaded by SDL_LoadWAV function.
 _audio_spec: sdl.c.SDL_AudioSpec = sdl.c.SDL_AudioSpec{},
-
-/// The audio stream retrieved from SDL_OpenAudioDeviceStream.
-/// Its address is stored here to ensure destroying it on script (sudden) _end_.
-_audio_stream: ?*sdl.c.SDL_AudioStream = null,
 
 /// The audio stream buffer; it gets loaded by SDL_LoadWAV function.
 _audio_buf: [*c]u8 = null,
@@ -87,14 +79,7 @@ fn end(s: *modules.Script, _: *modules.Object) void {
         *AudioPlayer,
         @constCast(@fieldParentPtr("_script_strategy", s.strategy)),
     );
-    self._end_invoked = true;
-    if (self._io_thread) |thread| thread.join();
     sdl.c.SDL_free(self._audio_buf);
-
-    // NOTE: currently the code relies on the backend, e.g. ALSA, for handling
-    // sudden exit, in the middle of the audio being played, situations.
-    // FIX: for some reason this causes an error.
-    // sdl.c.SDL_DestroyAudioStream(self._audio_stream);
 }
 
 pub fn loadWAV(self: *AudioPlayer, path: []const u8) void {
@@ -111,8 +96,10 @@ pub fn loadWAV(self: *AudioPlayer, path: []const u8) void {
     self._audio_dur = self.getAudioDur();
 }
 
-pub fn play(self: *AudioPlayer) void {
-    self._audio_stream = self._audio_stream orelse sdl.c.SDL_OpenAudioDeviceStream(
+pub fn play(self: *AudioPlayer) !void {
+    self._paused = false;
+
+    const audio_stream = sdl.c.SDL_OpenAudioDeviceStream(
         sdl.c.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
         &self._audio_spec,
         null,
@@ -120,28 +107,36 @@ pub fn play(self: *AudioPlayer) void {
     );
 
     // NOTE: streams are paused by default
-    if (!sdl.c.SDL_ResumeAudioStreamDevice(self._audio_stream)) {
+    if (!sdl.c.SDL_ResumeAudioStreamDevice(audio_stream)) {
         std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
         return;
     }
 
-    self.playStream();
-    self._paused = false;
+    if (!sdl.c.SDL_PutAudioStreamData(
+        audio_stream,
+        self._audio_buf,
+        @as(c_int, @intCast(self._audio_buf_len)),
+    )) {
+        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
+        return;
+    }
+
+    if (audio_stream) |stream| try modules.Globals.audioManager.?.addAudio(stream);
 }
 
-pub fn pause(self: *AudioPlayer) void {
-    if (!sdl.c.SDL_PauseAudioStreamDevice(self._audio_stream)) {
-        std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
-    }
-    self._paused = true;
-}
+// pub fn pause(self: *AudioPlayer) void {
+//     if (!sdl.c.SDL_PauseAudioStreamDevice(self._audio_stream)) {
+//         std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
+//     }
+//     self._paused = true;
+// }
 
-pub fn @"resume"(self: *AudioPlayer) void {
-    if (!sdl.c.SDL_ResumeAudioStreamDevice(self._audio_stream)) {
-        std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
-    }
-    self._paused = false;
-}
+// pub fn @"resume"(self: *AudioPlayer) void {
+//     if (!sdl.c.SDL_ResumeAudioStreamDevice(self._audio_stream)) {
+//         std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
+//     }
+//     self._paused = false;
+// }
 
 /// 1.0 volume is equivalent to 100%.
 pub fn setVolume(self: *AudioPlayer, volume: f32) void {
@@ -155,44 +150,9 @@ pub fn setVolume(self: *AudioPlayer, volume: f32) void {
     self._volume = volume;
 }
 
-fn playStream(self: *AudioPlayer) void {
-    if (!sdl.c.SDL_PutAudioStreamData(
-        self._audio_stream,
-        self._audio_buf,
-        @as(c_int, @intCast(self._audio_buf_len)),
-    )) {
-        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
-        return;
-    }
-
-    // Destroy the audio-stream after the audio duration is passed.
-    self._io_thread = std.Thread.spawn(.{}, destroyAudioStreamOnDurEnd, .{self}) catch unreachable;
-}
-
 fn getAudioDur(self: *AudioPlayer) u32 {
     const sample_size = sdl.c.SDL_AUDIO_BITSIZE(self._audio_spec.format) / 8;
     const total_samples = self._audio_buf_len / sample_size;
     const sample_per_channel = total_samples / @as(u32, @intCast(self._audio_spec.channels));
     return sample_per_channel / @as(u32, @intCast(self._audio_spec.freq));
-}
-
-fn destroyAudioStreamOnDurEnd(self: *AudioPlayer) void {
-    var f = self.io.async(destroyAsync, .{self});
-    f.await(self.io);
-}
-
-fn destroyAsync(self: *AudioPlayer) void {
-    self.io.sleep(.fromSeconds(self._audio_dur), .awake) catch {
-        std.log.err("audio-player: Io Sleep Failed!", .{});
-        sdl.c.SDL_DestroyAudioStream(self._audio_stream);
-        self._audio_stream = null;
-        return;
-    };
-
-    if (self._end_invoked) return; // NOTE: in order to avoid double free error
-    if (self.loop) return self.playStream();
-    if (self._audio_stream == null) return;
-
-    sdl.c.SDL_DestroyAudioStream(self._audio_stream);
-    self._audio_stream = null;
 }
