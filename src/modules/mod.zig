@@ -13,4 +13,7 @@ pub const ScriptStrategy = @import("script.zig").ScriptStrategy;
 pub const EventManager = @import("event-manager.zig");
 pub const StringFactory = @import("string-factory.zig");
 
+pub const AudioManager = @import("audio-manager.zig");
+pub const AudioStream = @import("audio-stream.zig");
+
 pub const Globals = @import("globals.zig");

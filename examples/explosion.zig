@@ -65,7 +65,7 @@ pub fn main(init: std.process.Init) !void {
             var ap = o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer");
 
             if (em.?.isKeyDown(.Space) and !pressed) {
-                ap.?.play() catch unreachable;
+                _ = ap.?.play() catch unreachable;
                 o.setDrawable(&explode_drawable);
                 pressed = true;
             }

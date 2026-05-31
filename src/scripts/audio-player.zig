@@ -35,9 +35,6 @@ _audio_buf_len: u32 = 0,
 /// ```
 _audio_dur: u32 = 0,
 
-/// Only true if _pause_ method invoked. _play_ and _resume_ reset its value to false.
-_paused: bool = false,
-
 _script_strategy: modules.ScriptStrategy = modules.ScriptStrategy{
     .start = start,
     .update = update,
@@ -51,6 +48,39 @@ pub fn toScript(self: *AudioPlayer) modules.Script {
         .name = "AudioPlayer",
         .strategy = &self._script_strategy,
     };
+}
+
+pub fn loadWAV(self: *AudioPlayer, path: []const u8) void {
+    self.wav_path = path;
+    if (!sdl.c.SDL_LoadWAV(
+        self.wav_path.ptr,
+        &self._audio_spec,
+        &self._audio_buf,
+        &self._audio_buf_len,
+    )) {
+        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
+        return;
+    }
+    self._audio_dur = self.getAudioDur();
+}
+
+pub fn play(self: *AudioPlayer) !modules.AudioStream {
+    var audio_stream = try modules.Globals.audioManager.?.newStream(&self._audio_spec);
+    audio_stream.@"resume"(); // NOTE: streams are paused by default
+    audio_stream.putAudio(self._audio_buf, self._audio_buf_len);
+    return audio_stream;
+}
+
+/// 1.0 volume is equivalent to 100%.
+pub fn setVolume(self: *AudioPlayer, volume: f32) void {
+    if (!sdl.c.SDL_MixAudio(
+        self._audio_buf,
+        self._audio_buf,
+        self._audio_spec.format,
+        self._audio_buf_len,
+        volume - self._volume,
+    )) std.log.warn("AudioPlayer: {s}\n", .{sdl.c.SDL_GetError()});
+    self._volume = volume;
 }
 
 fn start(s: *modules.Script, _: *modules.Object) void {
@@ -80,74 +110,6 @@ fn end(s: *modules.Script, _: *modules.Object) void {
         @constCast(@fieldParentPtr("_script_strategy", s.strategy)),
     );
     sdl.c.SDL_free(self._audio_buf);
-}
-
-pub fn loadWAV(self: *AudioPlayer, path: []const u8) void {
-    self.wav_path = path;
-    if (!sdl.c.SDL_LoadWAV(
-        self.wav_path.ptr,
-        &self._audio_spec,
-        &self._audio_buf,
-        &self._audio_buf_len,
-    )) {
-        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
-        return;
-    }
-    self._audio_dur = self.getAudioDur();
-}
-
-pub fn play(self: *AudioPlayer) !void {
-    self._paused = false;
-
-    const audio_stream = sdl.c.SDL_OpenAudioDeviceStream(
-        sdl.c.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
-        &self._audio_spec,
-        null,
-        null,
-    );
-
-    // NOTE: streams are paused by default
-    if (!sdl.c.SDL_ResumeAudioStreamDevice(audio_stream)) {
-        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
-        return;
-    }
-
-    if (!sdl.c.SDL_PutAudioStreamData(
-        audio_stream,
-        self._audio_buf,
-        @as(c_int, @intCast(self._audio_buf_len)),
-    )) {
-        std.log.err("{s}\n", .{sdl.c.SDL_GetError()});
-        return;
-    }
-
-    if (audio_stream) |stream| try modules.Globals.audioManager.?.addAudio(stream);
-}
-
-// pub fn pause(self: *AudioPlayer) void {
-//     if (!sdl.c.SDL_PauseAudioStreamDevice(self._audio_stream)) {
-//         std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
-//     }
-//     self._paused = true;
-// }
-
-// pub fn @"resume"(self: *AudioPlayer) void {
-//     if (!sdl.c.SDL_ResumeAudioStreamDevice(self._audio_stream)) {
-//         std.log.warn("AudioPlayer: {s}", .{sdl.c.SDL_GetError()});
-//     }
-//     self._paused = false;
-// }
-
-/// 1.0 volume is equivalent to 100%.
-pub fn setVolume(self: *AudioPlayer, volume: f32) void {
-    if (!sdl.c.SDL_MixAudio(
-        self._audio_buf,
-        self._audio_buf,
-        self._audio_spec.format,
-        self._audio_buf_len,
-        volume - self._volume,
-    )) std.log.warn("AudioPlayer: {s}\n", .{sdl.c.SDL_GetError()});
-    self._volume = volume;
 }
 
 fn getAudioDur(self: *AudioPlayer) u32 {
