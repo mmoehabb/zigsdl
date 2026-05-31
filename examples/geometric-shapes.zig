@@ -4,7 +4,7 @@ const std = @import("std");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
-    try zigsdl.modules.Globals.init(allocator);
+    try zigsdl.modules.Globals.init(allocator, init.io);
     defer zigsdl.modules.Globals.deinit();
 
     // A Green Rectangle
