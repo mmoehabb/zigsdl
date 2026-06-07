@@ -108,7 +108,7 @@ fn renderText(renderer: *sdl.c.SDL_Renderer, font_path: []const u8, font_size: f
     const font = sdl.c.TTF_OpenFont(font_path.ptr, font_size);
     if (font == null) return error.RenderFailed;
     defer sdl.c.TTF_CloseFont(font);
-    const surface = sdl.c.TTF_RenderText_Solid(font, str.ptr, str.len, sdl.c.SDL_Color{
+    const surface = sdl.c.TTF_RenderText_Blended(font, str.ptr, str.len, sdl.c.SDL_Color{
         .a = color.a,
         .b = color.b,
         .g = color.g,
@@ -118,6 +118,7 @@ fn renderText(renderer: *sdl.c.SDL_Renderer, font_path: []const u8, font_size: f
     defer sdl.c.SDL_DestroySurface(surface);
     const tex = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
     if (tex == null) return error.RenderFailed;
+    _ = sdl.c.SDL_SetTextureScaleMode(tex, sdl.c.SDL_SCALEMODE_LINEAR);
     return tex;
 }
 

@@ -147,7 +147,7 @@ fn draw(
         const font = sdl.c.TTF_OpenFont(self.font_path.ptr, self.font_size);
         if (font == null) return error.RenderFailed;
         defer sdl.c.TTF_CloseFont(font);
-        const surface = sdl.c.TTF_RenderText_Solid(font, self.label.ptr, self.label.len, sdl.c.SDL_Color{
+        const surface = sdl.c.TTF_RenderText_Blended(font, self.label.ptr, self.label.len, sdl.c.SDL_Color{
             .a = self.text_color.a,
             .b = self.text_color.b,
             .g = self.text_color.g,
@@ -156,7 +156,9 @@ fn draw(
         if (surface == null) return error.RenderFailed;
         defer sdl.c.SDL_DestroySurface(surface);
         self._texture = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
-        if (self._texture == null) return error.RenderFailed;
+        if (self._texture) |tex| {
+            _ = sdl.c.SDL_SetTextureScaleMode(tex, sdl.c.SDL_SCALEMODE_LINEAR);
+        } else return error.RenderFailed;
         self._last_label = self.label;
         self._last_color = self.text_color;
     }

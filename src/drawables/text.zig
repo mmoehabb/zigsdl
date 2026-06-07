@@ -60,7 +60,7 @@ fn draw(
 
     const texture = self._texture orelse blk: {
         const font = sdl.c.TTF_OpenFont(self.font_path.ptr, self.font_size);
-        const surface = sdl.c.TTF_RenderText_Solid(font, self.text.ptr, self.text.len, sdl.c.SDL_Color{
+        const surface = sdl.c.TTF_RenderText_Blended(font, self.text.ptr, self.text.len, sdl.c.SDL_Color{
             .a = self.*.color.a,
             .b = self.*.color.b,
             .g = self.*.color.g,
@@ -68,6 +68,7 @@ fn draw(
         });
         defer sdl.c.SDL_DestroySurface(surface);
         const texture = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
+        _ = sdl.c.SDL_SetTextureScaleMode(texture, sdl.c.SDL_SCALEMODE_LINEAR);
         break :blk texture;
     };
 
