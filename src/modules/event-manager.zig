@@ -5,21 +5,27 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
+const types = @import("../types/mod.zig");
 const Key = @import("../types/event.zig").Key;
 const KeyState = @import("../types/event.zig").KeyState;
 
 const EventManager = @This();
 
 _keys: std.AutoHashMap(Key, KeyState),
+_mouse_pos: types.Position = types.Position{},
+_allocator: std.mem.Allocator,
+_text_input_buf: std.ArrayList(u8) = .empty,
 
 pub fn init(allocator: std.mem.Allocator) EventManager {
     return EventManager{
         ._keys = std.AutoHashMap(Key, KeyState).init(allocator),
+        ._allocator = allocator,
     };
 }
 
 pub fn deinit(self: *EventManager) void {
     self._keys.deinit();
+    self._text_input_buf.deinit(self._allocator);
 }
 
 pub fn getKeys(self: *EventManager) std.AutoHashMap(Key, KeyState) {
@@ -34,6 +40,36 @@ pub fn isKeyDown(self: *EventManager, key: Key) bool {
 pub fn isKeyUp(self: *EventManager, key: Key) bool {
     const state = self._keys.get(key) orelse .Up;
     return state == .Up;
+}
+
+pub fn getMousePos(self: *EventManager) types.Position {
+    return self._mouse_pos;
+}
+
+pub fn isMouseDown(self: *EventManager) bool {
+    return self.isKeyDown(.LeftMouse);
+}
+
+pub fn isMouseUp(self: *EventManager) bool {
+    return self.isKeyUp(.LeftMouse);
+}
+
+/// Polls SDL directly for the current mouse position and updates [_mouse_pos](#root.modules.eventmanager._mouse_pos).
+/// UI drawables should call this at the top of their draw function so the hit-test is correct
+/// even when the user clicks without first moving the mouse (no SDL_EVENT_MOUSE_MOTION is delivered in that case).
+pub fn refreshMouseFromSDL(self: *EventManager) void {
+    var x: f32 = 0;
+    var y: f32 = 0;
+    _ = sdl.c.SDL_GetMouseState(&x, &y);
+    self._mouse_pos = .{ .x = x, .y = y };
+}
+
+/// Returns and clears the text typed since the last call. Each call returns the
+/// accumulated UTF-8 bytes from all SDL_EVENT_TEXT_INPUT events processed during
+/// the most recent [invokeEventLoop](#root.modules.eventmanager.invokeventloop) call.
+pub fn drainTextInput(self: *EventManager) []const u8 {
+    defer self._text_input_buf.clearRetainingCapacity();
+    return self._text_input_buf.items;
 }
 
 /// Invokes SDL_PollEvent and mutates the _keys field state accordingly. This method
@@ -51,13 +87,25 @@ pub fn invokeEventLoop(self: *EventManager) !sdl.c.SDL_Event {
                 const key = scancodeToKey(event.key.scancode);
                 try self.keyUp(key);
             },
+            sdl.c.SDL_EVENT_MOUSE_MOTION => {
+                self._mouse_pos = .{
+                    .x = event.motion.x,
+                    .y = event.motion.y,
+                };
+            },
+            sdl.c.SDL_EVENT_TEXT_INPUT => {
+                const slice = std.mem.span(event.text.text);
+                self._text_input_buf.appendSlice(self._allocator, slice) catch {};
+            },
             sdl.c.SDL_EVENT_MOUSE_BUTTON_DOWN => {
-                const key = mouseCodeToEnum(event.key.scancode);
+                const key = mouseCodeToEnum(event.button.button);
                 try self.keyDown(key);
+                return event;
             },
             sdl.c.SDL_EVENT_MOUSE_BUTTON_UP => {
-                const key = mouseCodeToEnum(event.key.scancode);
+                const key = mouseCodeToEnum(event.button.button);
                 try self.keyUp(key);
+                return event;
             },
             else => return event,
         }

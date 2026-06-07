@@ -43,6 +43,11 @@ pub fn getDim(self: *Text) types.Dimensions {
     };
 }
 
+pub fn setLabel(self: *Text, label: []const u8) void {
+    self.text = label;
+    self._texture = null;
+}
+
 fn draw(
     drawable: *modules.Drawable,
     ds: *const modules.DrawStrategy,
