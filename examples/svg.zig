@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
     const screen_height = 680;
 
     // Create a drawable svg object (1)
-    var svg = zigsdl.drawables.SVG.new(.{
+    var svg = zigsdl.drawables.Svg.new(.{
         .io = init.io,
         .dim = .{ .scale = 0.75 },
         .path = "./splash.svg",
@@ -26,7 +26,7 @@ pub fn main(init: std.process.Init) !void {
     defer obj.deinit();
 
     // Create a drawable svg object (2)
-    var svg2 = zigsdl.drawables.SVG.new(.{
+    var svg2 = zigsdl.drawables.Svg.new(.{
         .io = init.io,
         .content =
         \\ <svg width="100" height="100">

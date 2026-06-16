@@ -2,9 +2,9 @@
 //! and SDL_RenderLine for the check mark.
 
 const std = @import("std");
-const sdl = @import("../sdl.zig");
-const modules = @import("../modules/mod.zig");
-const types = @import("../types/mod.zig");
+const sdl = @import("../../sdl.zig");
+const modules = @import("../../modules/mod.zig");
+const types = @import("../../types/mod.zig");
 
 const CheckBox = @This();
 

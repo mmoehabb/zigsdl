@@ -2,9 +2,9 @@
 //! currently selected option; clicking it opens a dropdown panel of all options.
 
 const std = @import("std");
-const sdl = @import("../sdl.zig");
-const modules = @import("../modules/mod.zig");
-const types = @import("../types/mod.zig");
+const sdl = @import("../../sdl.zig");
+const modules = @import("../../modules/mod.zig");
+const types = @import("../../types/mod.zig");
 
 const Select = @This();
 

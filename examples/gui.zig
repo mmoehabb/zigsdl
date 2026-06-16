@@ -1,32 +1,33 @@
-const zigsdl = @import("zigsdl");
 const std = @import("std");
+const zigsdl = @import("zigsdl");
+const GUI = zigsdl.drawables.GUI;
 
 const font_path = "./examples/assets/OpenSans-Regular.ttf";
 const font_size: f32 = 18;
 
 const color_options = [_][]const u8{ "Red", "Green", "Blue", "Yellow", "Purple" };
 
-var g_status: *zigsdl.drawables.Text = undefined;
+var g_status: *GUI.Text = undefined;
 var g_button_clicks: u32 = 0;
-var g_checkbox: *zigsdl.drawables.CheckBox = undefined;
-var g_text_input: *zigsdl.drawables.TextInput = undefined;
-var g_select: *zigsdl.drawables.Select = undefined;
+var g_checkbox: *GUI.CheckBox = undefined;
+var g_text_input: *GUI.TextInput = undefined;
+var g_select: *GUI.Select = undefined;
 
-fn onButtonClick(_: *zigsdl.drawables.Button) void {
+fn onButtonClick(_: *GUI.Button) void {
     g_button_clicks += 1;
     g_status.setLabel("Button clicked!");
 }
 
-fn onToggle(self: *zigsdl.drawables.CheckBox) void {
+fn onToggle(self: *GUI.CheckBox) void {
     _ = self;
     g_status.setLabel(if (g_checkbox.checked) "Checkbox: ON" else "Checkbox: OFF");
 }
 
-fn onTextChange(self: *zigsdl.drawables.TextInput) void {
+fn onTextChange(self: *GUI.TextInput) void {
     g_status.setLabel(self.getText());
 }
 
-fn onSelectChange(self: *zigsdl.drawables.Select) void {
+fn onSelectChange(self: *GUI.Select) void {
     if (self.getSelected()) |sel| {
         g_status.setLabel(sel);
     }
@@ -38,7 +39,7 @@ pub fn main(init: std.process.Init) !void {
     try zigsdl.modules.Globals.init(allocator, init.io);
     defer zigsdl.modules.Globals.deinit();
 
-    var button = zigsdl.drawables.Button.new(.{
+    var button = GUI.Button.new(.{
         .label = "Click me",
         .dim = .{ .w = 140, .h = 36, .d = 1 },
         .font_path = font_path,
@@ -47,14 +48,14 @@ pub fn main(init: std.process.Init) !void {
     });
     var button_drawable = button.toDrawable();
 
-    var checkbox = zigsdl.drawables.CheckBox.new(.{
+    var checkbox = GUI.CheckBox.new(.{
         .dim = .{ .w = 28, .h = 28, .d = 1 },
         .on_toggle = onToggle,
     });
     g_checkbox = &checkbox;
     var checkbox_drawable = checkbox.toDrawable();
 
-    var text_input = try zigsdl.drawables.TextInput.new(allocator, .{
+    var text_input = try GUI.TextInput.new(allocator, .{
         .placeholder = "Type something...",
         .dim = .{ .w = 200, .h = 32, .d = 1 },
         .font_path = font_path,
@@ -65,7 +66,7 @@ pub fn main(init: std.process.Init) !void {
     g_text_input = &text_input;
     var text_input_drawable = text_input.toDrawable();
 
-    var select = try zigsdl.drawables.Select.new(allocator, .{
+    var select = try GUI.Select.new(allocator, .{
         .options = &color_options,
         .dim = .{ .w = 140, .h = 32, .d = 1 },
         .font_path = font_path,
@@ -75,7 +76,7 @@ pub fn main(init: std.process.Init) !void {
     g_select = &select;
     var select_drawable = select.toDrawable();
 
-    var status = zigsdl.drawables.Text.new(.{
+    var status = GUI.Text.new(.{
         .text = "Welcome!",
         .font_path = font_path,
         .font_size = font_size,
@@ -97,7 +98,7 @@ pub fn main(init: std.process.Init) !void {
     });
     defer checkbox_obj.deinit();
 
-    var checkbox_label = zigsdl.drawables.Text.new(.{
+    var checkbox_label = GUI.Text.new(.{
         .text = "Enable",
         .font_path = font_path,
         .font_size = font_size,

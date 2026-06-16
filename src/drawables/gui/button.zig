@@ -2,9 +2,9 @@
 //! background and SDL_TTF for the label.
 
 const std = @import("std");
-const sdl = @import("../sdl.zig");
-const modules = @import("../modules/mod.zig");
-const types = @import("../types/mod.zig");
+const sdl = @import("../../sdl.zig");
+const modules = @import("../../modules/mod.zig");
+const types = @import("../../types/mod.zig");
 
 const Button = @This();
 

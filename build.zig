@@ -109,9 +109,9 @@ pub fn build(b: *std.Build) void {
     exm6_run_step.dependOn(&exm6_run_cmd.step);
 
     const exm7 = b.addExecutable(.{
-        .name = "example:ui-demo",
+        .name = "example:gui",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("examples/ui-demo.zig"),
+            .root_source_file = b.path("examples/gui.zig"),
             .target = target,
             .optimize = .Debug,
         }),
@@ -120,7 +120,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exm7);
 
     const exm7_run_cmd = b.addRunArtifact(exm7);
-    const exm7_run_step = b.step("example:ui-demo", "Run examples/ui-demo.zig");
+    const exm7_run_step = b.step("example:gui", "Run examples/gui.zig");
     exm7_run_step.dependOn(&exm7_run_cmd.step);
 
     // ***********************************

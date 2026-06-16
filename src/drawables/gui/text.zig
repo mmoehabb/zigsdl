@@ -1,9 +1,9 @@
 //! A concrete drawable that renders texts by using sdl_ttf.
 
-const sdl = @import("../sdl.zig");
 const std = @import("std");
-const modules = @import("../modules/mod.zig");
-const types = @import("../types/mod.zig");
+const sdl = @import("../../sdl.zig");
+const modules = @import("../../modules/mod.zig");
+const types = @import("../../types/mod.zig");
 
 const Text = @This();
 

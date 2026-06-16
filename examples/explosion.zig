@@ -24,7 +24,7 @@ pub fn main(init: std.process.Init) !void {
     defer obj.deinit();
 
     // Create text object
-    var text = zigsdl.drawables.Text.new(.{
+    var text = zigsdl.drawables.GUI.Text.new(.{
         .text = "Press Space",
         .font_path = "./examples/assets/OpenSans-Regular.ttf",
         .font_size = 24,
