@@ -67,7 +67,13 @@ pub fn move(self: *Scene, p: types.Position) void {
 /// Note: this also invokes [object.setScene](#root.modules.object.setScene) method.
 pub fn addObject(self: *Scene, obj: *Object) !void {
     obj.setScene(self);
-    try self._objects.append(self._allocator, obj);
+    // Objects should be ordered descendly; ensure to preserve this ordering.
+    var i: usize = 0;
+    for (self._objects.items, 0..) |item, j| {
+        i = j;
+        if (item.position.z <= obj.position.z) break;
+    }
+    try self._objects.insert(self._allocator, i, obj);
 }
 
 /// Deep search the whole objects tree for an object with the specific passed name.
