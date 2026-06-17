@@ -106,7 +106,7 @@ pub fn main(init: std.process.Init) !void {
     var checkbox_label_drawable = checkbox_label.toDrawable();
     var checkbox_label_obj = zigsdl.modules.Object.init(allocator, .{
         .name = "checkbox_label",
-        .position = .{ .x = 70, .y = 95, .z = 1 },
+        .position = .{ .x = 36, .y = 0, .z = 1 },
         .drawable = &checkbox_label_drawable,
     });
     defer checkbox_label_obj.deinit();

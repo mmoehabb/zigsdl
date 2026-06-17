@@ -78,6 +78,9 @@ pub fn open(self: *Screen) !void {
         return error.SDLInitializationFailed;
     };
 
+    // TODO: this should be handled in the event-manager. Or at least, by using it.
+    Globals.setActiveWindow(self._window);
+
     self._renderer = sdl.c.SDL_CreateRenderer(self._window, null) orelse {
         sdl.c.SDL_Log("Unable to create renderer: %s", sdl.c.SDL_GetError());
         return error.SDLInitializationFailed;

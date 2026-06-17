@@ -54,16 +54,6 @@ pub fn isMouseUp(self: *EventManager) bool {
     return self.isKeyUp(.LeftMouse);
 }
 
-/// Polls SDL directly for the current mouse position and updates [_mouse_pos](#root.modules.eventmanager._mouse_pos).
-/// UI drawables should call this at the top of their draw function so the hit-test is correct
-/// even when the user clicks without first moving the mouse (no SDL_EVENT_MOUSE_MOTION is delivered in that case).
-pub fn refreshMouseFromSDL(self: *EventManager) void {
-    var x: f32 = 0;
-    var y: f32 = 0;
-    _ = sdl.c.SDL_GetMouseState(&x, &y);
-    self._mouse_pos = .{ .x = x, .y = y };
-}
-
 /// Returns and clears the text typed since the last call. Each call returns the
 /// accumulated UTF-8 bytes from all SDL_EVENT_TEXT_INPUT events processed during
 /// the most recent [invokeEventLoop](#root.modules.eventmanager.invokeventloop) call.

@@ -110,7 +110,6 @@ fn draw(
     const self = @as(*Button, @constCast(@fieldParentPtr("_draw_strategy", ds)));
 
     var em = modules.Globals.eventManager.?;
-    em.refreshMouseFromSDL();
     const mouse_pos = em.getMousePos();
     const mouse_down = em.isMouseDown();
 
