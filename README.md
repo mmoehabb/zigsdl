@@ -336,8 +336,8 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Make scenes behave like cameras; they can zoom in and out, and move in the four directions.
 
 #### Drawables
-- [ ] Implement a drawable for each common geometric shape.
-- [ ] Implement interactive UI drawables: Button, TextInput, Select, and Checkbox.
+- [x] Implement a drawable for each common geometric shape.
+- [x] Implement interactive UI drawables: Button, TextInput, Select, and Checkbox.
 - [x] Implement SVG Drawable.
 
 #### Refactor
@@ -357,6 +357,6 @@ carries the source, and another carries the listener).
 
 #### Examples
 - [x] Write SVG Example.
-- [ ] Write MainMenu/UI Example.
+- [x] Write UI Example.
 - [ ] Develop a [Pong game](https://www.ponggame.org/).
 - [ ] Develop a Sokoban game.

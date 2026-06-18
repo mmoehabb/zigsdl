@@ -108,6 +108,21 @@ pub fn build(b: *std.Build) void {
     const exm6_run_step = b.step("example:geometric-shapes", "Run examples/geometric-shapes.zig");
     exm6_run_step.dependOn(&exm6_run_cmd.step);
 
+    const exm7 = b.addExecutable(.{
+        .name = "example:gui",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/gui.zig"),
+            .target = target,
+            .optimize = .Debug,
+        }),
+    });
+    exm7.root_module.addImport("zigsdl", zigsdl);
+    b.installArtifact(exm7);
+
+    const exm7_run_cmd = b.addRunArtifact(exm7);
+    const exm7_run_step = b.step("example:gui", "Run examples/gui.zig");
+    exm7_run_step.dependOn(&exm7_run_cmd.step);
+
     // ***********************************
     // ********** Add test step **********
     // ***********************************

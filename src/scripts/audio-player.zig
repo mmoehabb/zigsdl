@@ -65,7 +65,7 @@ pub fn loadWAV(self: *AudioPlayer, path: []const u8) void {
 }
 
 pub fn play(self: *AudioPlayer) !modules.AudioStream {
-    var audio_stream = try modules.Globals.audioManager.?.newStream(&self._audio_spec);
+    var audio_stream = try modules.Globals.getAll().audioManager.newStream(&self._audio_spec);
     audio_stream.@"resume"(); // NOTE: streams are paused by default
     audio_stream.putAudio(self._audio_buf, self._audio_buf_len);
     return audio_stream;

@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
     const screen_height = 320;
 
     // Create a drawable object
-    var text = zigsdl.drawables.Text.new(.{
+    var text = zigsdl.drawables.GUI.Text.new(.{
         .text = "Hello World!",
         .font_path = "./examples/assets/OpenSans-Regular.ttf",
         .font_size = 24,

@@ -78,6 +78,9 @@ pub fn open(self: *Screen) !void {
         return error.SDLInitializationFailed;
     };
 
+    // TODO: this should be handled in the event-manager. Or at least, by using it.
+    Globals.setActiveWindow(self._window);
+
     self._renderer = sdl.c.SDL_CreateRenderer(self._window, null) orelse {
         sdl.c.SDL_Log("Unable to create renderer: %s", sdl.c.SDL_GetError());
         return error.SDLInitializationFailed;
@@ -94,11 +97,12 @@ pub fn open(self: *Screen) !void {
 fn update(self: *Screen) !void {
     if (self.lifecycle.preUpdate) |func| func(self);
 
-    const event = try Globals.eventManager.?.invokeEventLoop();
+    const event = try Globals.getAll().eventManager.invokeEventLoop();
     if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
     _ = sdl.c.SDL_RenderClear(self._renderer);
     if (self._scene) |s| try s.update(self._renderer.?);
+    // TODO: get the background color from user input
     _ = sdl.c.SDL_SetRenderDrawColor(self._renderer, 0, 0, 0, 255);
     _ = sdl.c.SDL_RenderPresent(self._renderer);
 

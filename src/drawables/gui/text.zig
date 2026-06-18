@@ -1,9 +1,9 @@
 //! A concrete drawable that renders texts by using sdl_ttf.
 
-const sdl = @import("../sdl.zig");
 const std = @import("std");
-const modules = @import("../modules/mod.zig");
-const types = @import("../types/mod.zig");
+const sdl = @import("../../sdl.zig");
+const modules = @import("../../modules/mod.zig");
+const types = @import("../../types/mod.zig");
 
 const Text = @This();
 
@@ -43,6 +43,11 @@ pub fn getDim(self: *Text) types.Dimensions {
     };
 }
 
+pub fn setLabel(self: *Text, label: []const u8) void {
+    self.text = label;
+    self._texture = null;
+}
+
 fn draw(
     drawable: *modules.Drawable,
     ds: *const modules.DrawStrategy,
@@ -55,7 +60,8 @@ fn draw(
 
     const texture = self._texture orelse blk: {
         const font = sdl.c.TTF_OpenFont(self.font_path.ptr, self.font_size);
-        const surface = sdl.c.TTF_RenderText_Solid(font, self.text.ptr, self.text.len, sdl.c.SDL_Color{
+        const text = if (self.text.len > 0) self.text else " ";
+        const surface = sdl.c.TTF_RenderText_Blended(font, text.ptr, text.len, sdl.c.SDL_Color{
             .a = self.*.color.a,
             .b = self.*.color.b,
             .g = self.*.color.g,
@@ -63,6 +69,7 @@ fn draw(
         });
         defer sdl.c.SDL_DestroySurface(surface);
         const texture = sdl.c.SDL_CreateTextureFromSurface(renderer, surface);
+        _ = sdl.c.SDL_SetTextureScaleMode(texture, sdl.c.SDL_SCALEMODE_LINEAR);
         break :blk texture;
     };
 

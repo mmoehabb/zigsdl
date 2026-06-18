@@ -24,7 +24,7 @@ pub fn main(init: std.process.Init) !void {
     defer obj.deinit();
 
     // Create text object
-    var text = zigsdl.drawables.Text.new(.{
+    var text = zigsdl.drawables.GUI.Text.new(.{
         .text = "Press Space",
         .font_path = "./examples/assets/OpenSans-Regular.ttf",
         .font_size = 24,
@@ -61,10 +61,10 @@ pub fn main(init: std.process.Init) !void {
 
         fn func(self: *anyopaque) void {
             const o = @as(*zigsdl.modules.Object, @ptrCast(@alignCast(self)));
-            var em = zigsdl.modules.Globals.eventManager;
+            var em = zigsdl.modules.Globals.getAll().eventManager;
             var ap = o.getScript(zigsdl.scripts.AudioPlayer, "AudioPlayer");
 
-            if (em.?.isKeyDown(.Space) and !pressed) {
+            if (em.isKeyDown(.Space) and !pressed) {
                 _ = ap.?.play() catch unreachable;
                 o.setDrawable(&explode_drawable);
                 pressed = true;

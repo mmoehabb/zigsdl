@@ -5,16 +5,23 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
+const types = @import("../types/mod.zig");
 const Key = @import("../types/event.zig").Key;
 const KeyState = @import("../types/event.zig").KeyState;
 
 const EventManager = @This();
 
 _keys: std.AutoHashMap(Key, KeyState),
+_mouse_pos: types.Position = types.Position{},
+_allocator: std.mem.Allocator,
+
+_text_input_buf: [32]u8 = [_]u8{0} ** 32,
+_text_input_cursor: usize = 0,
 
 pub fn init(allocator: std.mem.Allocator) EventManager {
     return EventManager{
         ._keys = std.AutoHashMap(Key, KeyState).init(allocator),
+        ._allocator = allocator,
     };
 }
 
@@ -36,6 +43,26 @@ pub fn isKeyUp(self: *EventManager, key: Key) bool {
     return state == .Up;
 }
 
+pub fn getMousePos(self: *EventManager) types.Position {
+    return self._mouse_pos;
+}
+
+pub fn isMouseDown(self: *EventManager) bool {
+    return self.isKeyDown(.LeftMouse);
+}
+
+pub fn isMouseUp(self: *EventManager) bool {
+    return self.isKeyUp(.LeftMouse);
+}
+
+/// Returns and clears the text typed since the last call. Each call returns the
+/// accumulated UTF-8 bytes from all SDL_EVENT_TEXT_INPUT events processed during
+/// the most recent [invokeEventLoop](#root.modules.eventmanager.invokeventloop) call.
+pub fn drainTextInput(self: *EventManager) []const u8 {
+    defer self._text_input_cursor = 0;
+    return self._text_input_buf[0..self._text_input_cursor];
+}
+
 /// Invokes SDL_PollEvent and mutates the _keys field state accordingly. This method
 /// shall only be invoked by the [screen](#root.modules.screen) instance. No need to
 /// manually calling it.
@@ -51,13 +78,28 @@ pub fn invokeEventLoop(self: *EventManager) !sdl.c.SDL_Event {
                 const key = scancodeToKey(event.key.scancode);
                 try self.keyUp(key);
             },
+            sdl.c.SDL_EVENT_MOUSE_MOTION => {
+                self._mouse_pos = .{
+                    .x = event.motion.x,
+                    .y = event.motion.y,
+                };
+            },
+            sdl.c.SDL_EVENT_TEXT_INPUT => {
+                const slice: []const u8 = std.mem.span(event.text.text);
+                const s = self._text_input_cursor;
+                const e = s + slice.len;
+                @memcpy(self._text_input_buf[s..e], slice);
+                self._text_input_cursor = e;
+            },
             sdl.c.SDL_EVENT_MOUSE_BUTTON_DOWN => {
-                const key = mouseCodeToEnum(event.key.scancode);
+                const key = mouseCodeToEnum(event.button.button);
                 try self.keyDown(key);
+                return event;
             },
             sdl.c.SDL_EVENT_MOUSE_BUTTON_UP => {
-                const key = mouseCodeToEnum(event.key.scancode);
+                const key = mouseCodeToEnum(event.button.button);
                 try self.keyUp(key);
+                return event;
             },
             else => return event,
         }
