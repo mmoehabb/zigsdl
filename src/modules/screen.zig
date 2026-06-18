@@ -97,7 +97,7 @@ pub fn open(self: *Screen) !void {
 fn update(self: *Screen) !void {
     if (self.lifecycle.preUpdate) |func| func(self);
 
-    const event = try Globals.eventManager.?.invokeEventLoop();
+    const event = try Globals.getAll().eventManager.invokeEventLoop();
     if (event.type == sdl.c.SDL_EVENT_QUIT) return try self.close();
 
     _ = sdl.c.SDL_RenderClear(self._renderer);

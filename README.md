@@ -357,6 +357,6 @@ carries the source, and another carries the listener).
 
 #### Examples
 - [x] Write SVG Example.
-- [ ] Write MainMenu/UI Example.
+- [x] Write UI Example.
 - [ ] Develop a [Pong game](https://www.ponggame.org/).
 - [ ] Develop a Sokoban game.

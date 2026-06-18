@@ -14,7 +14,9 @@ const EventManager = @This();
 _keys: std.AutoHashMap(Key, KeyState),
 _mouse_pos: types.Position = types.Position{},
 _allocator: std.mem.Allocator,
-_text_input_buf: std.ArrayList(u8) = .empty,
+
+_text_input_buf: [32]u8 = [_]u8{0} ** 32,
+_text_input_cursor: usize = 0,
 
 pub fn init(allocator: std.mem.Allocator) EventManager {
     return EventManager{
@@ -25,7 +27,6 @@ pub fn init(allocator: std.mem.Allocator) EventManager {
 
 pub fn deinit(self: *EventManager) void {
     self._keys.deinit();
-    self._text_input_buf.deinit(self._allocator);
 }
 
 pub fn getKeys(self: *EventManager) std.AutoHashMap(Key, KeyState) {
@@ -58,8 +59,8 @@ pub fn isMouseUp(self: *EventManager) bool {
 /// accumulated UTF-8 bytes from all SDL_EVENT_TEXT_INPUT events processed during
 /// the most recent [invokeEventLoop](#root.modules.eventmanager.invokeventloop) call.
 pub fn drainTextInput(self: *EventManager) []const u8 {
-    defer self._text_input_buf.clearRetainingCapacity();
-    return self._text_input_buf.items;
+    defer self._text_input_cursor = 0;
+    return self._text_input_buf[0..self._text_input_cursor];
 }
 
 /// Invokes SDL_PollEvent and mutates the _keys field state accordingly. This method
@@ -84,8 +85,11 @@ pub fn invokeEventLoop(self: *EventManager) !sdl.c.SDL_Event {
                 };
             },
             sdl.c.SDL_EVENT_TEXT_INPUT => {
-                const slice = std.mem.span(event.text.text);
-                self._text_input_buf.appendSlice(self._allocator, slice) catch {};
+                const slice: []const u8 = std.mem.span(event.text.text);
+                const s = self._text_input_cursor;
+                const e = s + slice.len;
+                @memcpy(self._text_input_buf[s..e], slice);
+                self._text_input_cursor = e;
             },
             sdl.c.SDL_EVENT_MOUSE_BUTTON_DOWN => {
                 const key = mouseCodeToEnum(event.button.button);

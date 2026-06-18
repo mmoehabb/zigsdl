@@ -21,7 +21,7 @@ pub fn new(io: std.Io, dim: types.Dimensions, _: types.Color) !SVG {
     ;
 
     // TODO: improve error handling here
-    var str = try modules.Globals.stringFactory.?.createBuffer(512);
+    var str = try modules.Globals.getAll().stringFactory.createBuffer(512);
 
     const svg_content = std.fmt.bufPrint(
         str.getBuffer(),

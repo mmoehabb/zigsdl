@@ -60,7 +60,8 @@ fn draw(
 
     const texture = self._texture orelse blk: {
         const font = sdl.c.TTF_OpenFont(self.font_path.ptr, self.font_size);
-        const surface = sdl.c.TTF_RenderText_Blended(font, self.text.ptr, self.text.len, sdl.c.SDL_Color{
+        const text = if (self.text.len > 0) self.text else " ";
+        const surface = sdl.c.TTF_RenderText_Blended(font, text.ptr, text.len, sdl.c.SDL_Color{
             .a = self.*.color.a,
             .b = self.*.color.b,
             .g = self.*.color.g,

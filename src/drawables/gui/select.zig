@@ -152,7 +152,7 @@ fn draw(
 
     if (!self._built) try self.buildOptionTextures(renderer);
 
-    var em = modules.Globals.eventManager.?;
+    var em = modules.Globals.getAll().eventManager;
     const mouse_pos = em.getMousePos();
     const mouse_down = em.isMouseDown();
 

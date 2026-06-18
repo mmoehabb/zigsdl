@@ -60,7 +60,7 @@ pub fn main(init: std.process.Init) !void {
     scene.lifecycle.postUpdate = struct {
         fn func(self: *anyopaque) void {
             const s = @as(*zigsdl.modules.Scene, @ptrCast(@alignCast(self)));
-            var em = zigsdl.modules.Globals.eventManager.?;
+            var em = zigsdl.modules.Globals.getAll().eventManager;
             if (em.isKeyDown(.W)) s.move(.{ .y = 5 });
             if (em.isKeyDown(.D)) s.move(.{ .x = -5 });
             if (em.isKeyDown(.S)) s.move(.{ .y = -5 });

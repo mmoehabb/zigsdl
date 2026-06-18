@@ -124,7 +124,7 @@ fn draw(
 ) !void {
     const self = @as(*TextInput, @constCast(@fieldParentPtr("_draw_strategy", ds)));
 
-    var em = modules.Globals.eventManager.?;
+    var em = modules.Globals.getAll().eventManager;
     const mouse_pos = em.getMousePos();
     const mouse_down = em.isMouseDown();
 
@@ -155,7 +155,7 @@ fn draw(
 
     if (self.focused) {
         if (!self._text_input_active) {
-            _ = sdl.c.SDL_StartTextInput(modules.Globals.activeWindow);
+            _ = sdl.c.SDL_StartTextInput(modules.Globals.getAll().activeWindow);
             self._text_input_active = true;
         }
 

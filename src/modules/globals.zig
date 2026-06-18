@@ -9,10 +9,10 @@ const StringFactory = @import("./string-factory.zig");
 const EventManager = @import("./event-manager.zig");
 const AudioManager = @import("./audio-manager.zig");
 
-pub var stringFactory: ?StringFactory = null;
-pub var eventManager: ?EventManager = null;
-pub var audioManager: ?AudioManager = null;
-pub var activeWindow: ?*sdl.c.SDL_Window = null;
+var stringFactory: ?StringFactory = null;
+var eventManager: ?EventManager = null;
+var audioManager: ?AudioManager = null;
+var activeWindow: ?*sdl.c.SDL_Window = null;
 
 var initialized = false;
 
@@ -36,4 +36,18 @@ pub fn isInitialized() bool {
 
 pub fn setActiveWindow(window: ?*sdl.c.SDL_Window) void {
     activeWindow = window;
+}
+
+pub fn getAll() struct {
+    stringFactory: *StringFactory,
+    eventManager: *EventManager,
+    audioManager: *AudioManager,
+    activeWindow: ?*sdl.c.SDL_Window,
+} {
+    return .{
+        .stringFactory = &stringFactory.?,
+        .eventManager = &eventManager.?,
+        .audioManager = &audioManager.?,
+        .activeWindow = activeWindow,
+    };
 }
