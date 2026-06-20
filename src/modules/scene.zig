@@ -20,17 +20,23 @@ lifecycle: types.LifeCycle = types.LifeCycle{},
 
 _allocator: std.mem.Allocator,
 _objects: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
+_objectNameMemo: std.StringHashMap(?*Object),
+_objectsTagMemo: std.StringHashMap([]?*Object),
 
 pub fn init(allocator: std.mem.Allocator) Scene {
     return Scene{
         .screen = undefined,
         ._allocator = allocator,
+        ._objectNameMemo = std.StringHashMap(?*Object).init(allocator),
+        ._objectsTagMemo = std.StringHashMap([]?*Object).init(allocator),
     };
 }
 
 pub fn deinit(self: *Scene) void {
     if (self.lifecycle.preClose) |func| func(self);
     self._objects.deinit(self._allocator);
+    self._objectNameMemo.deinit();
+    self._objectsTagMemo.deinit();
     if (self.lifecycle.postClose) |func| func(self);
 }
 
@@ -66,6 +72,7 @@ pub fn move(self: *Scene, p: types.Position) void {
 
 /// Note: this also invokes [object.setScene](#root.modules.object.setScene) method.
 pub fn addObject(self: *Scene, obj: *Object) !void {
+    defer self.resetMemo();
     obj.setScene(self);
     // Objects should be ordered descendly; ensure to preserve this ordering.
     var i: usize = 0;
@@ -76,18 +83,35 @@ pub fn addObject(self: *Scene, obj: *Object) !void {
     try self._objects.insert(self._allocator, i, obj);
 }
 
+pub fn rmvObject(self: *Scene, obj: *Object) void {
+    defer self.resetMemo();
+    var i: ?usize = null;
+    for (self._objects.items, 0..) |item, j| {
+        if (item == obj) i = j;
+    }
+    if (i) |n| _ = self._objects.orderedRemove(n);
+}
+
 /// Deep search the whole objects tree for an object with the specific passed name.
 /// Note: it returns only the first one it finds.
-pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
+pub fn getObjectByName(self: *Scene, name: []const u8) !?*Object {
+    if (self._objectNameMemo.get(name)) |found| return found;
+
     for (self._objects.items) |obj| {
+        try self._objectNameMemo.put(obj.name, obj);
         if (std.mem.eql(u8, obj.name, name)) return obj;
     }
 
     for (self._objects.items) |obj| {
+        // NOTE: getChildByName updates the memo state as well.
         const found = obj.getChildByName(name);
-        if (found) |c| return c;
+        if (found) |c| {
+            try self._objectNameMemo.put(name, c);
+            return c;
+        }
     }
 
+    try self._objectNameMemo.put(name, null);
     return null;
 }
 
@@ -97,15 +121,30 @@ pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
 /// :param `max`: the maximum number of objects to search for.
 pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
     arr: [max]?*Object,
-    size: u8,
+    size: usize,
 } {
-    var res: [max]?*Object = .{null} ** max;
+    // Craft the memo key
+    var keyBuf: [128]u8 = .{0} ** 128;
+    const key = std.fmt.bufPrint(&keyBuf, "{s}_{d}", .{ tag, max }) catch "NULL";
+
+    // Get the memoized value if any exists
+    if (self._objectsTagMemo.get(key)) |found| {
+        var arr: [max]?*Object = .{null} ** max;
+        @memcpy(arr[0..found.len], found);
+        return .{
+            .arr = arr,
+            .size = found.len,
+        };
+    }
+
+    var arr: [max]?*Object = .{null} ** max;
+    defer self._objectsTagMemo.put(key, arr[0..]) catch {};
 
     var i: u8 = 0;
     for (self._objects.items) |o1| {
         if (i >= max) break;
         if (std.mem.eql(u8, o1.tag, tag)) {
-            res[i] = o1;
+            arr[i] = o1;
             i = i + 1;
         }
 
@@ -114,7 +153,7 @@ pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
             if (i >= max) break;
             if (o2) |o| {
                 if (std.mem.eql(u8, o.tag, tag)) {
-                    res[i] = o2;
+                    arr[i] = o2;
                     i = i + 1;
                 }
             }
@@ -122,9 +161,15 @@ pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
     }
 
     return .{
-        .arr = res,
+        .arr = arr,
         .size = i,
     };
+}
+
+pub fn resetMemo(self: *Scene) void {
+    // TODO: This should be improved by clearing only a subset of the memoized data
+    self._objectNameMemo.clearAndFree();
+    self._objectsTagMemo.clearAndFree();
 }
 
 test "Retrieve a certain object from the scene by its name" {
@@ -147,7 +192,9 @@ test "Retrieve a certain object from the scene by its name" {
     defer scene.deinit();
     try scene.addObject(&obj1);
 
-    try expect(scene.getObjectByName("Child 2").? == &obj3);
+    const found = try scene.getObjectByName("Child 2");
+    try expect(found != null);
+    try expect(found.? == &obj3);
 }
 
 test "Retrieve a slice of objects from the scene by their tag" {

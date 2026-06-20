@@ -170,6 +170,7 @@ pub fn getScript(self: *Object, P: type, name: []const u8) ?*P {
 }
 
 pub fn setScene(self: *Object, scene: *Scene) void {
+    if (self._scene) |s| s.rmvObject(self);
     self._scene = scene;
     for (self._children.items) |child| child.setScene(scene);
 }
@@ -185,58 +186,18 @@ pub fn detach(self: *Object) void {
     if (oldparent) |p| p.rmvChild(self);
 }
 
-test "should detach the object from its parent; from both ways" {
-    const allocator = std.testing.allocator;
-    const expect = std.testing.expect;
-
-    var parent = Object.init(allocator, .{});
-    defer parent.deinit();
-
-    var child = Object.init(allocator, .{ .name = "child" });
-    defer child.deinit();
-
-    try parent.addChild(&child);
-    try expect(child._parent == &parent);
-    try expect(parent.getChildByName("child") == &child);
-
-    child.detach();
-    try expect(child._parent == null);
-    try expect(parent.getChildByName("child") == null);
-}
-
-/// Note: this also attaches the parent to the child, after detaching
-/// the child from the old parent.
+/// This attaches the parent to the child, and vise versa, after
+/// detaching the child from its old parent.
 pub fn addChild(self: *Object, child: *Object) !void {
+    defer if (self._scene) |s| s.resetMemo();
     try self._children.append(self._allocator, child);
     if (child._parent) |_| child.detach();
     child._parent = self;
     if (self._scene) |s| child.setScene(s);
 }
 
-test "should detach the child from its parent before adding it to the new one" {
-    const allocator = std.testing.allocator;
-    const expect = std.testing.expect;
-
-    var oldparent = Object.init(allocator, .{});
-    defer oldparent.deinit();
-
-    var child = Object.init(allocator, .{ .name = "child" });
-    defer child.deinit();
-
-    try oldparent.addChild(&child);
-    try expect(child._parent == &oldparent);
-    try expect(oldparent.getChildByName("child") == &child);
-
-    var newparent = Object.init(allocator, .{});
-    defer newparent.deinit();
-
-    try newparent.addChild(&child);
-    try expect(child._parent == &newparent);
-    try expect(newparent.getChildByName("child") == &child);
-    try expect(oldparent.getChildByName("child") == null);
-}
-
 pub fn rmvChild(self: *Object, child: *Object) void {
+    defer if (self._scene) |s| s.resetMemo();
     var index: isize = -1;
     for (self._children.items, 0..) |obj, i| {
         if (obj == child) {
@@ -250,29 +211,11 @@ pub fn rmvChild(self: *Object, child: *Object) void {
     }
 }
 
-test "should detach the child from its parent after being removed" {
-    const allocator = std.testing.allocator;
-    const expect = std.testing.expect;
-
-    var parent = Object.init(allocator, .{});
-    defer parent.deinit();
-
-    var child = Object.init(allocator, .{ .name = "child" });
-    defer child.deinit();
-
-    try parent.addChild(&child);
-    try expect(child._parent == &parent);
-    try expect(parent.getChildByName("child") == &child);
-
-    parent.rmvChild(&child);
-    try expect(child._parent == null);
-    try expect(parent.getChildByName("child") == null);
-}
-
 /// Deep search the whole children tree for an object with the specific passed name.
-/// Note: it returns only the first one it finds.
+/// NOTE: It returns only the first one it finds.
 pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     for (self._children.items) |child| {
+        if (self._scene) |s| s._objectNameMemo.put(child.name, child) catch {};
         if (std.mem.eql(u8, child.name, name)) return child;
     }
 
@@ -318,4 +261,68 @@ pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) struct {
         .arr = res,
         .size = i,
     };
+}
+
+// ====================================
+// =========== UNIT TESTS =============
+// ====================================
+test "should detach the child from its parent after being removed" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var parent = Object.init(allocator, .{});
+    defer parent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try parent.addChild(&child);
+    try expect(child._parent == &parent);
+    try expect(parent.getChildByName("child") == &child);
+
+    parent.rmvChild(&child);
+    try expect(child._parent == null);
+    try expect(parent.getChildByName("child") == null);
+}
+
+test "should detach the object from its parent; from both ways" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var parent = Object.init(allocator, .{});
+    defer parent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try parent.addChild(&child);
+    try expect(child._parent == &parent);
+    try expect(parent.getChildByName("child") == &child);
+
+    child.detach();
+    try expect(child._parent == null);
+    try expect(parent.getChildByName("child") == null);
+}
+
+test "should detach the child from its parent before adding it to the new one" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var oldparent = Object.init(allocator, .{});
+    defer oldparent.deinit();
+
+    var child = Object.init(allocator, .{ .name = "child" });
+    defer child.deinit();
+
+    try oldparent.addChild(&child);
+    try expect(child._parent == &oldparent);
+    try expect(oldparent.getChildByName("child") == &child);
+
+    var newparent = Object.init(allocator, .{});
+    defer newparent.deinit();
+
+    try newparent.addChild(&child);
+    try expect(child._parent == &newparent);
+    try expect(newparent.getChildByName("child") == &child);
+    try expect(oldparent.getChildByName("child") == null);
 }
