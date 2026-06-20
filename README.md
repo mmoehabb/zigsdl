@@ -67,13 +67,11 @@ I bet if you gave the code a look, you'd already know how to extend it and make 
 const zigsdl = @import("zigsdl");
 const std = @import("std");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) std.debug.panic("Memory leak detected!", .{});
-    }
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+
+    try zigsdl.modules.Globals.init(allocator, init.io);
+    defer zigsdl.modules.Globals.deinit();
 
     // Create a drawable object
     var rect = zigsdl.drawables.Rect.new(
@@ -100,7 +98,7 @@ pub fn main() !void {
     try scene.addObject(&obj);
 
     // Create a screen, attach the scene to it, and open it
-    var screen = zigsdl.modules.Screen.init(allocator, .{
+    var screen = try zigsdl.modules.Screen.init(.{
         .title = "Simple Game",
         .width = 320,
         .height = 320,
