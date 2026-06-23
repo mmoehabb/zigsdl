@@ -215,7 +215,6 @@ pub fn rmvChild(self: *Object, child: *Object) void {
 /// NOTE: It returns only the first one it finds.
 pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     for (self._children.items) |child| {
-        if (self._scene) |s| s._objectNameMemo.put(child.name, child) catch {};
         if (std.mem.eql(u8, child.name, name)) return child;
     }
 
@@ -227,40 +226,15 @@ pub fn getChildByName(self: *Object, name: []const u8) ?*Object {
     return null;
 }
 
-/// Deep search the whole children tree and return an array of the ones that have the passed tag.
-///
-/// :param `tag`: the object tag to be searched for.
-/// :param `max`: the maximum number of objects to search for.
-pub fn getChildsByTag(self: *Object, tag: []const u8, comptime max: u8) struct {
-    arr: [max]?*Object,
-    size: u8,
-} {
-    var res: [max]?*Object = .{null} ** max;
-
-    var i: u8 = 0;
+/// Deep search the whole children tree and append the found
+/// objects into the passed array.
+pub fn getChildsByTag(self: *Object, tag: []const u8, arr: *std.ArrayList(*Object)) !void {
     for (self._children.items) |c1| {
-        if (i >= max) break;
         if (std.mem.eql(u8, c1.tag, tag)) {
-            res[i] = c1;
-            i = i + 1;
+            try arr.append(self._allocator, c1);
         }
-
-        const inner_childs = c1.getChildsByTag(tag, max);
-        for (inner_childs.arr[0..inner_childs.size]) |c2| {
-            if (i >= max) break;
-            if (c2) |c| {
-                if (std.mem.eql(u8, c.tag, tag)) {
-                    res[i] = c2;
-                    i = i + 1;
-                }
-            }
-        }
+        try c1.getChildsByTag(tag, arr);
     }
-
-    return .{
-        .arr = res,
-        .size = i,
-    };
 }
 
 // ====================================
