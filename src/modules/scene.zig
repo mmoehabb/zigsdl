@@ -20,17 +20,29 @@ lifecycle: types.LifeCycle = types.LifeCycle{},
 
 _allocator: std.mem.Allocator,
 _objects: std.ArrayList(*Object) = std.ArrayList(*Object).empty,
+_objectNameMemo: std.StringHashMap(?*Object),
+_objectsTagMemo: std.StringHashMap(std.ArrayList(*Object)),
 
 pub fn init(allocator: std.mem.Allocator) Scene {
     return Scene{
         .screen = undefined,
         ._allocator = allocator,
+        ._objectNameMemo = std.StringHashMap(?*Object).init(allocator),
+        ._objectsTagMemo = std.StringHashMap(std.ArrayList(*Object)).init(allocator),
     };
 }
 
 pub fn deinit(self: *Scene) void {
     if (self.lifecycle.preClose) |func| func(self);
+
     self._objects.deinit(self._allocator);
+
+    self._objectNameMemo.deinit();
+
+    var vIter = self._objectsTagMemo.valueIterator();
+    while (vIter.next()) |value| value.deinit(self._allocator);
+    self._objectsTagMemo.deinit();
+
     if (self.lifecycle.postClose) |func| func(self);
 }
 
@@ -66,6 +78,7 @@ pub fn move(self: *Scene, p: types.Position) void {
 
 /// Note: this also invokes [object.setScene](#root.modules.object.setScene) method.
 pub fn addObject(self: *Scene, obj: *Object) !void {
+    defer self.resetMemo();
     obj.setScene(self);
     // Objects should be ordered descendly; ensure to preserve this ordering.
     var i: usize = 0;
@@ -76,55 +89,61 @@ pub fn addObject(self: *Scene, obj: *Object) !void {
     try self._objects.insert(self._allocator, i, obj);
 }
 
+pub fn rmvObject(self: *Scene, obj: *Object) void {
+    defer self.resetMemo();
+    var i: ?usize = null;
+    for (self._objects.items, 0..) |item, j| {
+        if (item == obj) i = j;
+    }
+    if (i) |n| _ = self._objects.orderedRemove(n);
+}
+
 /// Deep search the whole objects tree for an object with the specific passed name.
 /// Note: it returns only the first one it finds.
-pub fn getObjectByName(self: *Scene, name: []const u8) ?*Object {
+pub fn getObjectByName(self: *Scene, name: []const u8) !?*Object {
+    if (self._objectNameMemo.get(name)) |found| return found;
+
     for (self._objects.items) |obj| {
+        try self._objectNameMemo.put(obj.name, obj);
         if (std.mem.eql(u8, obj.name, name)) return obj;
     }
 
     for (self._objects.items) |obj| {
+        // NOTE: getChildByName updates the memo state as well.
         const found = obj.getChildByName(name);
-        if (found) |c| return c;
+        if (found) |c| {
+            try self._objectNameMemo.put(name, c);
+            return c;
+        }
     }
 
+    try self._objectNameMemo.put(name, null);
     return null;
 }
 
-/// Deep search the whole objects tree and return an array of the ones that have the passed tag.
-///
-/// :param `tag`: the object tag to be searched for.
-/// :param `max`: the maximum number of objects to search for.
-pub fn getObjectsByTag(self: *Scene, tag: []const u8, comptime max: u8) struct {
-    arr: [max]?*Object,
-    size: u8,
-} {
-    var res: [max]?*Object = .{null} ** max;
+/// Deep search the whole objects tree and return a slice of the ones with the passed tag.
+pub fn getObjectsByTag(self: *Scene, tag: []const u8) ![]*Object {
+    // Get the memoized value if any exists
+    if (self._objectsTagMemo.get(tag)) |found| return found.items;
 
-    var i: u8 = 0;
+    var arr = try self._objectsTagMemo.getOrPutValue(tag, .empty);
+
     for (self._objects.items) |o1| {
-        if (i >= max) break;
         if (std.mem.eql(u8, o1.tag, tag)) {
-            res[i] = o1;
-            i = i + 1;
+            try arr.value_ptr.append(self._allocator, o1);
         }
-
-        const inner_childs = o1.getChildsByTag(tag, max);
-        for (inner_childs.arr[0..inner_childs.size]) |o2| {
-            if (i >= max) break;
-            if (o2) |o| {
-                if (std.mem.eql(u8, o.tag, tag)) {
-                    res[i] = o2;
-                    i = i + 1;
-                }
-            }
-        }
+        try o1.getChildsByTag(tag, arr.value_ptr);
     }
 
-    return .{
-        .arr = res,
-        .size = i,
-    };
+    return arr.value_ptr.items;
+}
+
+pub fn resetMemo(self: *Scene) void {
+    // TODO: This should be improved by clearing only a subset of the memoized data
+    self._objectNameMemo.clearAndFree();
+    var vIter = self._objectsTagMemo.valueIterator();
+    while (vIter.next()) |value| value.deinit(self._allocator);
+    self._objectsTagMemo.clearAndFree();
 }
 
 test "Retrieve a certain object from the scene by its name" {
@@ -147,7 +166,9 @@ test "Retrieve a certain object from the scene by its name" {
     defer scene.deinit();
     try scene.addObject(&obj1);
 
-    try expect(scene.getObjectByName("Child 2").? == &obj3);
+    const found = try scene.getObjectByName("Child 2");
+    try expect(found != null);
+    try expect(found.? == &obj3);
 }
 
 test "Retrieve a slice of objects from the scene by their tag" {
@@ -180,8 +201,56 @@ test "Retrieve a slice of objects from the scene by their tag" {
     defer scene.deinit();
     try scene.addObject(&obj1);
 
-    const walls = scene.getObjectsByTag("wall", 5);
-    try expect(walls.size == 2);
-    try expect(walls.arr[0] == &obj2);
-    try expect(walls.arr[1] == &obj4);
+    const walls = try scene.getObjectsByTag("wall");
+    try expect(walls.len == 2);
+    try expect(walls[0] == &obj2);
+    try expect(walls[1] == &obj4);
+}
+
+test "Retrieve objects, more efficiently, with memoization" {
+    const allocator = std.testing.allocator;
+    const expect = std.testing.expect;
+
+    var obj1 = Object.init(allocator, .{ .name = "Parent" });
+    defer obj1.deinit();
+
+    var obj2 = Object.init(allocator, .{ .name = "Child 1" });
+    defer obj2.deinit();
+
+    var obj3 = Object.init(allocator, .{ .name = "Child 1.1", .tag = "wing" });
+    defer obj3.deinit();
+
+    var obj4 = Object.init(allocator, .{ .name = "Child 1.2", .tag = "wing" });
+    defer obj4.deinit();
+
+    try obj1.addChild(&obj2);
+    try obj2.addChild(&obj3);
+    try obj2.addChild(&obj4);
+
+    var scene = Scene.init(allocator);
+    defer scene.deinit();
+    try scene.addObject(&obj1);
+
+    const found = try scene.getObjectByName("Child 1.1");
+    try expect(found != null);
+    try expect(found.? == &obj3);
+
+    const wings = try scene.getObjectsByTag("wing");
+    try expect(wings.len == 2);
+    try expect(wings[0] == &obj3);
+    try expect(wings[1] == &obj4);
+
+    // Test the scene memo state
+    try expect(scene._objectNameMemo.count() == 2);
+    if (scene._objectNameMemo.getEntry("Child 1")) |e| {
+        try expect(e.value_ptr.* == &obj2);
+    }
+
+    try expect(scene._objectsTagMemo.count() == 1);
+    if (scene._objectsTagMemo.getEntry("wing")) |e| {
+        const arr = e.value_ptr.items;
+        try expect(arr.len == 2);
+        try expect(arr[0] == &obj3);
+        try expect(arr[1] == &obj4);
+    }
 }

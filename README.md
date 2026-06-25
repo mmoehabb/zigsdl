@@ -339,10 +339,8 @@ For detailed instructions or troubleshooting, visit the [SDL3 documentation](htt
 - [x] Implement SVG Drawable.
 
 #### Refactor
-- [ ] Improve _getObjectByName_ & _getObjectsByTag_ methods in the _scene_ component. \
-By storing all objects in hash-tables rather than exhaustively searching for each required \
-object by its tag or name. Be aware that each object being added in the tree (calling _addChild_ \
-method from any inner child object) should also update the scene state.
+- [x] Improve _getObjectByName_ & _getObjectsByTag_ methods in the _scene_ module, by adding memoization. \
+NOTE: the memo should be invalidated as well when child objects are added to scene objects.
 
 #### Scripts
 - [ ] Implement _Rigidbody_ script; it should, at minimum, specify the mass of the object, detect collisions, and apply gravity.
