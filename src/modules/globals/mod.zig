@@ -4,14 +4,18 @@
 //! these global variables.
 
 const std = @import("std");
-const sdl = @import("../sdl.zig");
+const sdl = @import("../../sdl.zig");
+
 const StringFactory = @import("./string-factory.zig");
 const EventManager = @import("./event-manager.zig");
 const AudioManager = @import("./audio-manager.zig");
+const PhyzxEngine = @import("./phyzx-engine.zig");
 
 var stringFactory: ?StringFactory = null;
 var eventManager: ?EventManager = null;
 var audioManager: ?AudioManager = null;
+var phyzxEngine: ?PhyzxEngine = null;
+
 var activeWindow: ?*sdl.c.SDL_Window = null;
 
 var initialized = false;
@@ -22,12 +26,14 @@ pub fn init(allocator: std.mem.Allocator, io: std.Io) !void {
     stringFactory = try StringFactory.init(allocator);
     eventManager = EventManager.init(allocator);
     audioManager = try AudioManager.init(allocator, io);
+    phyzxEngine = PhyzxEngine.init(allocator, io);
 }
 
 pub fn deinit() void {
     stringFactory.?.deinit();
     eventManager.?.deinit();
     audioManager.?.deinit();
+    phyzxEngine.?.deinit();
 }
 
 pub fn isInitialized() bool {
@@ -39,15 +45,17 @@ pub fn setActiveWindow(window: ?*sdl.c.SDL_Window) void {
 }
 
 pub fn getAll() struct {
+    activeWindow: ?*sdl.c.SDL_Window,
     stringFactory: *StringFactory,
     eventManager: *EventManager,
     audioManager: *AudioManager,
-    activeWindow: ?*sdl.c.SDL_Window,
+    phyzxEngine: *PhyzxEngine,
 } {
     return .{
+        .activeWindow = activeWindow,
         .stringFactory = &stringFactory.?,
         .eventManager = &eventManager.?,
         .audioManager = &audioManager.?,
-        .activeWindow = activeWindow,
+        .phyzxEngine = &phyzxEngine.?,
     };
 }

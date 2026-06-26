@@ -3,9 +3,9 @@
 const std = @import("std");
 const sdl = @import("../sdl.zig");
 
-const Globals = @import("globals.zig");
-const Scene = @import("scene.zig");
+const Globals = @import("globals/mod.zig");
 const types = @import("../types/mod.zig");
+const Scene = @import("scene.zig");
 
 const Screen = @This();
 

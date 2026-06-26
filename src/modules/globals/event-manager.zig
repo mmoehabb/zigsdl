@@ -3,11 +3,11 @@
 //! and exposes it via the [getEventManager](#root.modules.screen.getEventManager) method.
 
 const std = @import("std");
-const sdl = @import("../sdl.zig");
+const sdl = @import("../../sdl.zig");
 
-const types = @import("../types/mod.zig");
-const Key = @import("../types/event.zig").Key;
-const KeyState = @import("../types/event.zig").KeyState;
+const types = @import("../../types/mod.zig");
+const Key = @import("../../types/event.zig").Key;
+const KeyState = @import("../../types/event.zig").KeyState;
 
 const EventManager = @This();
 

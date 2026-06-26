@@ -3,7 +3,6 @@
 const std = @import("std");
 const modules = @import("../modules/mod.zig");
 const types = @import("../types/mod.zig");
-const AudioPlayer = @import("../scripts/mod.zig").AudioPlayer;
 
 const Movement = @This();
 

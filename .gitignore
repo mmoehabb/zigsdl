@@ -2,3 +2,7 @@
 zig-out/
 *.o
 *.a
+
+# Emacs temp file
+\#*\#
+*~

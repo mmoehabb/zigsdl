@@ -1,6 +1,6 @@
 const std = @import("std");
-const sdl = @import("../sdl.zig");
-const AudioStream = @import("./audio-stream.zig");
+const sdl = @import("../../sdl.zig");
+const AudioStream = @import("../audio-stream.zig");
 
 const AudioManager = @This();
 
