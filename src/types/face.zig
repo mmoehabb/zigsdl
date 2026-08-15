@@ -12,6 +12,14 @@ p3: Vector = .{},
 p4: Vector = .{},
 owner: *Object,
 
+pub fn getCenter(self: Face) Vector {
+    return self.p1
+        .add(self.p2)
+        .add(self.p3)
+        .add(self.p4)
+        .multiply(1 / 4);
+}
+
 pub fn add(self: Face, p: Vector) Face {
     return .{
         .p1 = self.p1.add(p),

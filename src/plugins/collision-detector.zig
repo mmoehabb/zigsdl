@@ -48,8 +48,14 @@ pub fn deinit(self: *CollisionDetector) void {
     self._faces.deinit(self._allocator);
 }
 
-pub fn start(self: *CollisionDetector) !void {
-    self._thread = try std.Thread.spawn(.{}, detectCollisionThread, .{self});
+pub fn start(self: *CollisionDetector, bg_thread: bool) !void {
+    if (bg_thread) {
+        self._thread = try std.Thread.spawn(
+            .{},
+            detectCollisionThread,
+            .{self},
+        );
+    }
 }
 
 /// Add object to the collection on which the collision detector shall operate.
@@ -85,6 +91,15 @@ pub fn getCollisions(
     defer self._state_mutex.unlock(self._io);
     const res = try self._collision_map.getOrPutValue(obj, .empty);
     try arr.appendSlice(allocator, res.value_ptr.items);
+}
+
+/// Returns true if any of the passed objects has collisions
+pub fn hasCollisions(self: *CollisionDetector, objs: []*Object) !bool {
+    for (objs) |obj| {
+        const res = try self._collision_map.getOrPutValue(obj, .empty);
+        if (res.value_ptr.items.len > 0) return true;
+    }
+    return false;
 }
 
 fn detectCollisionThread(self: *CollisionDetector) void {
@@ -133,8 +148,10 @@ pub fn detectCollision(self: *CollisionDetector) void {
 
             // TODO: enhance error hanlding
             const cA = self._collision_map.getOrPutValue(A.owner, .empty) catch unreachable;
-            const cB = self._collision_map.getOrPutValue(B.owner, .empty) catch unreachable;
-
+            var collision = Collision{
+                .myface = A,
+                .face = B,
+            };
             for ([4]Vector{ absA.p1, absA.p2, absA.p3, absA.p4 }) |p| {
                 // Skip if there is no possible collision
                 if (!absB.isPCP(p)) continue;
@@ -146,30 +163,38 @@ pub fn detectCollision(self: *CollisionDetector) void {
                 if (altCircum > origCircum) continue;
 
                 // Update the state with the detected collision
-                cA.value_ptr.append(self._allocator, .{
-                    .face = B,
-                    .x = closestVertex.x - p.x,
-                    .y = closestVertex.y - p.y,
-                    .z = closestVertex.z - p.z,
-                }) catch unreachable;
-
-                // Add collision to the B owner if and only if it didn't detect it already
-                const found = blk: {
-                    for (cB.value_ptr.items) |col|
-                        if (col.face.owner == A.owner) break :blk true;
-                    break :blk false;
-                };
-                if (!found) {
-                    cB.value_ptr.append(self._allocator, .{
-                        .face = A,
-                        .x = p.x - closestVertex.x,
-                        .y = p.y - closestVertex.y,
-                        .z = p.z - closestVertex.z,
-                    }) catch unreachable;
-                }
-
-                break;
+                collision.addPoint(.{
+                    .point = p,
+                    .mag = .{
+                        .x = closestVertex.x - p.x,
+                        .y = closestVertex.y - p.y,
+                        .z = closestVertex.z - p.z,
+                    },
+                });
             }
+            cA.value_ptr.append(self._allocator, collision) catch unreachable;
+        }
+    }
+}
+
+/// Remove collisions, between two objects, from the collision detector internal state
+pub fn removeCollisions(self: *CollisionDetector, obj1: *Object, obj2: *Object) !void {
+    if (obj1 == obj2) return;
+
+    try self._state_mutex.lock(self._io);
+    defer self._state_mutex.unlock(self._io);
+
+    var col1 = self._collision_map.get(obj1);
+    if (col1) |*list| {
+        for (list.items, 0..) |c, i| {
+            if (c.face.owner == obj2) _ = list.orderedRemove(i);
+        }
+    }
+
+    var col2 = self._collision_map.get(obj2);
+    if (col2) |*list| {
+        for (list.items, 0..) |c, i| {
+            if (c.face.owner == obj1) _ = list.orderedRemove(i);
         }
     }
 }

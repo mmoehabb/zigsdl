@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
 
     // Define and add plugins >>>
     var collisionDetector = zest.plugins.CollisionDetector.init(allocator, init.io);
-    try collisionDetector.start();
+    try collisionDetector.start(false);
     defer collisionDetector.deinit();
     try pm.add(&collisionDetector, "CollisionDetector");
 
@@ -31,7 +31,7 @@ pub fn main(init: std.process.Init) !void {
     );
     var box_drawable = rect.toDrawable();
 
-    var boxes: [5]?*Box = @splat(null);
+    var boxes: [10]?*Box = @splat(null);
 
     const rng_impl: std.Random.IoSource = .{ .io = init.io };
     const rng = rng_impl.interface();
@@ -94,7 +94,7 @@ pub fn main(init: std.process.Init) !void {
         var jr: ?*zest.plugins.JammingResolver = null;
         fn func(_: *anyopaque) void {
             jr = jr orelse zest.modules.PluginManager.get(zest.plugins.JammingResolver, "JammingResolver").?;
-            jr.?.resolve();
+            jr.?.resolve(true);
         }
     }.func;
 

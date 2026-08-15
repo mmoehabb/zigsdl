@@ -112,16 +112,20 @@ fn update(s: *modules.Script, obj: *modules.Object) void {
     for (self._collisions.items) |collision| {
         const cobj = collision.face.owner;
         if (cobj.getScript(Rigidbody, "Rigidbody")) |rbody| {
-            const cx = @abs(collision.x);
-            const cy = @abs(collision.y);
-            // const cz = @abs(collision.z); TODO: enable z axis as well for 3D
-            const mc = @min(cx, cy);
-            if (mc == cx) {
-                if (collision.x > 0) self._pfr.x = @min(1.00, self._pfr.x + rbody._pfr.x) //
-                else self._nfr.x = @min(1.00, self._nfr.x + rbody._nfr.x);
-            } else if (mc == cy) {
-                if (collision.y > 0) self._pfr.y = @min(1.00, self._pfr.y + rbody._pfr.y) //
-                else self._nfr.y = @min(1.00, self._nfr.y + rbody._nfr.y);
+            inline for (collision.cps) |cp| {
+                if (cp) |cpoint| {
+                    const cx = @abs(cpoint.mag.x);
+                    const cy = @abs(cpoint.mag.y);
+                    // const cz = @abs(cpoint.z); TODO: enable z axis as well for 3D
+                    const mc = @min(cx, cy);
+                    if (mc == cx) {
+                        if (cpoint.mag.x > 0) self._pfr.x = @min(1.00, self._pfr.x + rbody._pfr.x) //
+                        else self._nfr.x = @min(1.00, self._nfr.x + rbody._nfr.x);
+                    } else if (mc == cy) {
+                        if (cpoint.mag.y > 0) self._pfr.y = @min(1.00, self._pfr.y + rbody._pfr.y) //
+                        else self._nfr.y = @min(1.00, self._nfr.y + rbody._nfr.y);
+                    }
+                }
             }
         }
     }
