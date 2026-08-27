@@ -23,25 +23,11 @@ pub fn subtract(self: Vector, pos: Vector) Vector {
     };
 }
 
-/// If the operand is NaN, 0.00 is used instead.
 pub fn multiply(self: Vector, operand: f32) Vector {
     return .{
         .x = self.x * operand,
         .y = self.y * operand,
         .z = self.z * operand,
-    };
-}
-
-pub fn norm(self: Vector) Vector {
-    const max = @max(self.x, self.y, self.z);
-    return self.multiply(if (max > 0) 1 / max else 1);
-}
-
-pub fn dot(self: Vector, p: Vector) Vector {
-    return .{
-        .x = self.x * p.x,
-        .y = self.y * p.y,
-        .z = self.z * p.z,
     };
 }
 
@@ -90,4 +76,22 @@ pub fn evalAngleWith(self: Vector, v: Vector) f32 {
     cos = @max(-1.00, @min(1.00, cos));
 
     return std.math.acos(cos);
+}
+
+pub fn dot(self: Vector, v: Vector) f32 {
+    return self.x * v.x + self.y * v.y + self.z * v.z;
+}
+
+pub fn lengthSq(self: Vector) f32 {
+    return self.x * self.x + self.y * self.y + self.z * self.z;
+}
+
+pub fn normalize(self: Vector) Vector {
+    const mag = self.magnitude();
+    if (mag == 0) return .{};
+    return self.multiply(1.0 / mag);
+}
+
+pub fn lerp(self: Vector, v: Vector, t: f32) Vector {
+    return self.add(v.subtract(self).multiply(t));
 }

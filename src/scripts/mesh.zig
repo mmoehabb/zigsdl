@@ -47,7 +47,7 @@ fn start(_: *modules.Script, obj: *modules.Object) void {
     );
 }
 
-fn update(_: *modules.Script, _: *modules.Object) void {}
+fn update(_: *modules.Script, _: *modules.Object, _: f32) void {}
 
 fn end(_: *modules.Script, obj: *modules.Object) void {
     modules.PluginManager.get(plugins.CollisionDetector, "CollisionDetector").?.rmvObject(obj);

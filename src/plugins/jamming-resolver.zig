@@ -80,7 +80,7 @@ pub fn resolve(self: *JammingResolver, refreshCollisions: bool) void {
 
     for (self._objects.items) |obj1| {
         self._collisions.clearRetainingCapacity();
-        dc.getCollisions(obj1, self._allocator, &self._collisions) catch {
+        dc.getCollisions(self._allocator, obj1, &self._collisions) catch {
             std.log.err("JammingResolver.resolve: collisions couldn't be detected!", .{});
             return;
         };
@@ -88,7 +88,7 @@ pub fn resolve(self: *JammingResolver, refreshCollisions: bool) void {
         // - Get the negative momentum which shall be used in order to get the
         //   original positions of the object face points.
         const rigid1 = obj1.getScript(Rigidbody, "Rigidbody").?;
-        const nmom = rigid1._vel.multiply(-1);
+        const nmom = rigid1.velocity.multiply(-1);
         const pos1 = obj1.position.add(nmom);
 
         // - Get the minimal magnitude to move pos1 so that it barely touches `collision.face`.
@@ -123,7 +123,7 @@ pub fn resolve(self: *JammingResolver, refreshCollisions: bool) void {
 
                     // Get the point c which is the insection of point p with the
                     // line `ab` while moving in the direction `-nmom`.
-                    const c = getPointLineTrajectory(p, a.?, b.?, rigid1._vel);
+                    const c = getPointLineTrajectory(p, a.?, b.?, rigid1.velocity);
                     if (c == null) continue;
 
                     const mag = c.?.subtract(p).magnitude();
@@ -133,7 +133,7 @@ pub fn resolve(self: *JammingResolver, refreshCollisions: bool) void {
         }
 
         if (min_mag) |n| {
-            obj1.position = pos1.add(rigid1._vel.norm().multiply(n));
+            obj1.position = pos1.add(rigid1.velocity.normalize().multiply(n));
         }
     }
 
@@ -145,7 +145,7 @@ pub fn resolve(self: *JammingResolver, refreshCollisions: bool) void {
 fn jammingExist(self: *JammingResolver, threshold: f32) bool {
     for (self._objects.items) |obj| {
         self._collisions.clearRetainingCapacity();
-        self._collisionDetector.getCollisions(obj, self._allocator, &self._collisions) catch {
+        self._collisionDetector.getCollisions(self._allocator, obj, &self._collisions) catch {
             std.log.err("JammingResolver.resolve: collisions couldn't be detected!", .{});
             return false;
         };

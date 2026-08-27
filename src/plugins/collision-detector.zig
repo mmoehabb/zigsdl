@@ -83,8 +83,8 @@ pub fn rmvObject(self: *CollisionDetector, obj: *Object) void {
 /// them into the passed _arr_.
 pub fn getCollisions(
     self: *CollisionDetector,
-    obj: *Object,
     allocator: std.mem.Allocator,
+    obj: *Object,
     arr: *std.ArrayList(Collision),
 ) !void {
     try self._state_mutex.lock(self._io);
@@ -148,6 +148,7 @@ pub fn detectCollision(self: *CollisionDetector) void {
 
             // TODO: enhance error hanlding
             const cA = self._collision_map.getOrPutValue(A.owner, .empty) catch unreachable;
+            const cB = self._collision_map.getOrPutValue(B.owner, .empty) catch unreachable;
             var collision = Collision{
                 .myface = A,
                 .face = B,
@@ -172,7 +173,11 @@ pub fn detectCollision(self: *CollisionDetector) void {
                     },
                 });
             }
-            cA.value_ptr.append(self._allocator, collision) catch unreachable;
+
+            if (collision._len > 0) {
+                cA.value_ptr.append(self._allocator, collision) catch unreachable;
+                cB.value_ptr.append(self._allocator, collision) catch unreachable;
+            }
         }
     }
 }

@@ -4,7 +4,7 @@
 const Face = @import("./face.zig");
 const Vector = @import("./vector.zig");
 
-const CPoint = struct {
+pub const CPoint = struct {
     /// The point where collision happened/detected.
     point: Vector,
 
@@ -30,4 +30,5 @@ _len: u3 = 0,
 pub fn addPoint(self: *Collision, p: CPoint) void {
     if (self._len >= 4) return;
     self.cps[self._len] = p;
+    self._len += 1;
 }

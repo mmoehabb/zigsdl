@@ -91,11 +91,11 @@ pub fn start(self: *Object) !void {
 }
 
 /// This method shall only be invoked via the scene.
-pub fn update(self: *Object) !void {
+pub fn update(self: *Object, dt: f32) !void {
     if (!self._active) return;
     if (self.lifecycle.preUpdate) |func| func(self);
-    for (self._scripts.items) |*script| script.update(self);
-    for (self._children.items) |child| try child.update();
+    for (self._scripts.items) |*script| script.update(self, dt);
+    for (self._children.items) |child| try child.update(dt);
     if (self.lifecycle.postUpdate) |func| func(self);
 }
 

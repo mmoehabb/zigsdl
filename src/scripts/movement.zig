@@ -54,7 +54,7 @@ pub fn toScript(self: *Movement) modules.Script {
 
 fn start(_: *modules.Script, _: *modules.Object) void {}
 
-fn update(s: *modules.Script, o: *modules.Object) void {
+fn update(s: *modules.Script, o: *modules.Object, _: f32) void {
     const obj = o;
     const self = @as(*Movement, @constCast(
         @fieldParentPtr("_script_strategy", s.strategy),

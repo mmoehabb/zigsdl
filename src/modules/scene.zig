@@ -54,9 +54,9 @@ pub fn start(self: *Scene) !void {
 }
 
 /// This ought to be invoked by the [screen](#root.modules.screen).
-pub fn update(self: *Scene) !void {
+pub fn update(self: *Scene, dt: f32) !void {
     if (self.lifecycle.preUpdate) |func| func(self);
-    for (self._objects.items) |obj| try obj.update();
+    for (self._objects.items) |obj| try obj.update(dt);
     if (self.lifecycle.postUpdate) |func| func(self);
 }
 

@@ -9,7 +9,7 @@ pub fn main(init: std.process.Init) !void {
     try pm.init(allocator);
     defer pm.deinit();
 
-    // Define and add plugins >>>
+    // >>> Define and add plugins
     var collisionDetector = zest.plugins.CollisionDetector.init(allocator, init.io);
     try collisionDetector.start(false);
     defer collisionDetector.deinit();
@@ -31,24 +31,28 @@ pub fn main(init: std.process.Init) !void {
     );
     var box_drawable = rect.toDrawable();
 
-    var boxes: [10]?*Box = @splat(null);
+    var boxes: [2]?*Box = @splat(null);
+    const names: [2][]const u8 = .{ "Box1", "Box2" };
 
-    const rng_impl: std.Random.IoSource = .{ .io = init.io };
-    const rng = rng_impl.interface();
+    // const rng_impl: std.Random.IoSource = .{ .io = init.io };
+    // const rng = rng_impl.interface();
 
     for (0..boxes.len) |i| {
-        const rand1 = rng.float(f32);
-        const rand2 = rng.float(f32);
+        // const rand1 = rng.float(f32);
+        // const rand2 = rng.float(f32);
         boxes[i] = try Box.init(
             allocator,
             &box_drawable,
-            "Box",
+            names[i],
             .{
-                .x = 300.0 * rand1,
-                .y = 200.0 * rand2,
+                // .x = 300.0 * rand1,
+                // .y = 200.0 * rand2,
+                .x = 150.0,
+                .y = 30.0 * (@as(f32, @floatFromInt(i)) * 3.0),
             },
         );
     }
+
     defer for (&boxes) |*box| if (box.*) |b| b.deinit();
 
     var terrain_rect = zest.drawables.Rect.new(
@@ -153,7 +157,7 @@ const Box = struct {
         var box_rigidbody = try zest.scripts.Rigidbody.init(.{
             .allocator = allocator,
             .mass = 5,
-            .gravity = true,
+            .gravity = 1.00,
             .static = false,
         });
         try box._obj.addScript(box_rigidbody.toScript());

@@ -28,7 +28,7 @@ const Object = @import("./object.zig");
 /// ```
 pub const ScriptStrategy = struct {
     start: *const fn (_: *Script, _: *Object) void,
-    update: *const fn (_: *Script, _: *Object) void,
+    update: *const fn (_: *Script, _: *Object, f32) void,
     end: *const fn (_: *Script, _: *Object) void,
 };
 
@@ -47,8 +47,8 @@ pub const Script = struct {
     }
 
     /// This method shall be invoked within the [object.update](#root.modules.object.update) method.
-    pub fn update(self: *Script, obj: *Object) void {
-        self.strategy.update(self, obj);
+    pub fn update(self: *Script, obj: *Object, dt: f32) void {
+        self.strategy.update(self, obj, dt);
     }
 
     /// This method shall only be invoked within [object.deactivate](#root.modules.object.deactivate)

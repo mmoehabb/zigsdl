@@ -108,9 +108,11 @@ fn update(self: *Screen) !void {
         if (event.type == sdl.SDL_EVENT_QUIT) return try self.close();
     }
 
+    const dt: f32 = @as(f32, @floatFromInt(self.rate)) / 1000.0; // ms to seconds
+
     _ = sdl.SDL_RenderClear(self._renderer);
     if (self._scene) |s| {
-        try s.update();
+        try s.update(dt);
         try s.draw(self._renderer.?);
     }
     // TODO: get the background color from user input
